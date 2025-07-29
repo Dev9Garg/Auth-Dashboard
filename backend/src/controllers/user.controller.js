@@ -15,7 +15,7 @@ const generateAccessAndRefreshToken = async (userId) => {
         const user = await User.findByPk(userId);
 
         if (!user) {
-            res
+            return res
             .status(404)
             .json(
                 { 
@@ -35,7 +35,7 @@ const generateAccessAndRefreshToken = async (userId) => {
         return {accessToken, refreshToken}
     } catch (error) {
         console.error("Token generation error:", error);
-        res
+        return res
         .status(500)
         .json(
             { 
@@ -59,7 +59,7 @@ const register = asyncHandler( async (req, res) => {
     if(
         [username, email, fullName, contactNumber, password].some((field) => field?.trim() === "")
     ) {
-        res
+        return res
         .status(400)
         .json(
             { 
@@ -70,7 +70,7 @@ const register = asyncHandler( async (req, res) => {
     }
 
     if(!(usernameValidation.safeParse(username)).success) {
-        res
+        return res
         .status(400)
         .json(
             { 
@@ -79,7 +79,7 @@ const register = asyncHandler( async (req, res) => {
             }
         );
     } else if (!(emailValidation.safeParse(email)).success) {
-        res
+        return res
         .status(400)
         .json(
             { 
@@ -88,7 +88,7 @@ const register = asyncHandler( async (req, res) => {
             }
         );
     } else if(!(passwordValidation.safeParse(password)).success) {
-        res
+        return res
         .status(400)
         .json(
             { 
@@ -105,7 +105,7 @@ const register = asyncHandler( async (req, res) => {
     })
 
     if(blacklistedEmail.length !== 0) {
-        res
+        return res
         .status(400)
         .json(
             { 
@@ -125,7 +125,7 @@ const register = asyncHandler( async (req, res) => {
     });
 
     if(existingUser.length !== 0) {
-        res
+        return res
         .status(400)
         .json(
             { 
@@ -156,7 +156,7 @@ const register = asyncHandler( async (req, res) => {
         })
     
         if(!createdUser) {
-            res
+            return res
             .status(400)
             .json(
                 { 
@@ -184,7 +184,7 @@ const register = asyncHandler( async (req, res) => {
             console.error("Original PG error:", err.original.detail || err.original.message);
         }
 
-        res
+        return res
         .status(500)
         .json(
             { 
@@ -210,7 +210,7 @@ const login = asyncHandler( async (req, res) => {
     if(
         [identifier, password].some((field) => field?.trim() === "")
     ) {
-        res
+        return res
         .status(400)
         .json(
             { 
@@ -227,7 +227,7 @@ const login = asyncHandler( async (req, res) => {
     })
 
     if(blacklistedEmail.length !== 0) {
-        res
+        return res
         .status(400)
         .json(
             { 
@@ -247,7 +247,7 @@ const login = asyncHandler( async (req, res) => {
     })
 
     if(!checkUser) {
-        res
+        return res
         .status(400)
         .json(
             { 
@@ -260,7 +260,7 @@ const login = asyncHandler( async (req, res) => {
     const checkPassword = await bcrypt.compare(password, checkUser.password)
 
     if(!checkPassword) {
-        res
+        return res
         .status(400)
         .json(
             { 
@@ -350,7 +350,7 @@ const allUsers = asyncHandler( async (req, res) => {
     const user = req.user;
 
     if(!user.isAdmin) {
-        res
+        return res
         .status(401)
         .json(
             { 
@@ -388,7 +388,7 @@ const adminProfile = asyncHandler( async (req, res) => {
     const user = req.user
 
     if(!user.isAdmin) {
-        res
+        return res
         .status(401)
         .json(
             { 
@@ -414,7 +414,7 @@ const removeUser = asyncHandler( async (req, res) => {
     const user = req.user
 
     if(!user.isAdmin) {
-        res
+        return res
         .status(401)
         .json(
             { 
@@ -426,8 +426,8 @@ const removeUser = asyncHandler( async (req, res) => {
 
     const {userId} = req.body;
 
-    if(userId.trim() === "") {
-        res
+    if(!userId) {
+        return res
         .status(400)
         .json(
             { 
@@ -437,6 +437,17 @@ const removeUser = asyncHandler( async (req, res) => {
         );
     }
 
+    if(userId === user.id) {
+        return res
+        .status(400)
+        .json(
+            {
+                success: false,
+                message: "You cannot delete your account !!"
+            }
+        )
+    }
+
     const notExistingUserId = await User.findAll({
         where: {
             id: userId
@@ -444,7 +455,7 @@ const removeUser = asyncHandler( async (req, res) => {
     })
 
     if(notExistingUserId.length === 0) {
-        res
+        return res
         .status(400)
         .json(
             { 
@@ -461,7 +472,7 @@ const removeUser = asyncHandler( async (req, res) => {
     })
 
     if(!deletedUserId) {
-        res
+        return res
         .status(500)
         .json(
             { 
@@ -486,7 +497,7 @@ const updateUserDetails = asyncHandler( async (req, res) => {
     const user = req.user;
 
     if(!user.isAdmin) {
-        res
+        return res
         .status(400)
         .json(
             { 
@@ -501,7 +512,7 @@ const updateUserDetails = asyncHandler( async (req, res) => {
     if(
         [fullName, username, contactNumber, email].some((field) => field?.trim() === "") 
     ) {
-        res
+        return res
         .status(400)
         .json(
             { 
@@ -518,7 +529,7 @@ const updateUserDetails = asyncHandler( async (req, res) => {
     })
 
     if(!existingUser) {
-        res
+        return res
         .status(400)
         .json(
             { 
@@ -538,7 +549,7 @@ const updateUserDetails = asyncHandler( async (req, res) => {
     )
 
     if(!userToBeUpdated) {
-        res
+        return res
         .status(500)
         .json(
             { 
@@ -577,7 +588,7 @@ const updateDetails = asyncHandler( async (req, res) => {
     if(
         [fullName, contactNumber].some((field) => field?.trim() === "") 
     ) {
-        res
+        return res
         .status(400)
         .json(
             { 
@@ -593,7 +604,7 @@ const updateDetails = asyncHandler( async (req, res) => {
     })
 
     if(!updateUser) {
-        res
+        return res
         .status(500)
         .json(
             { 

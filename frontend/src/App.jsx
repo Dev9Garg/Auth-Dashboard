@@ -22,7 +22,11 @@ import {useAuth} from "./context/AuthContext.jsx"
 
 function App() {
 
-  const {user} = useAuth();
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div className='flex justify-center items-center font-bold text-4xl'>Loading...</div>; // or a spinner component
+  }
 
   return (
     <>
@@ -32,32 +36,40 @@ function App() {
 
       <Route
         path="/user/login"
-        // element={!user ? <Login /> : (!user.isAdmin ? <Navigate to="/user/dashboard" /> : <Navigate to="/admin/dashboard" />)}
-        element={!user ? <Login /> : <Dashboard />}
+        element={!user ? <Login /> : (!user.isAdmin ? <Navigate to="/user/dashboard" /> : <Navigate to="/admin/dashboard" />)}
       />
 
       <Route
         path="/user/signup"
-        // element={!user ? <Signup /> : (!user.isAdmin ? <Navigate to="/user/dashboard" /> : <Navigate to="/admin/dashboard" />)}
-        element={!user ? <Signup /> : <Dashboard />}
+        element={!user ? <Signup /> : (!user.isAdmin ? <Navigate to="/user/dashboard" /> : <Navigate to="/admin/dashboard" />)}
       />
 
       <Route
         path="/user/dashboard"
         element={
           <PrivateRoute>
-            {/* {user.isAdmin ? <Navigate to='/admin/dashboard' /> : <Dashboard />} */}
-            <Dashboard />
+            {!user ? (
+              <Navigate to="/user/login" />
+            ) : user.isAdmin ? (
+              <Navigate to="/admin/dashboard" />
+            ) : (
+              <Dashboard />
+            )}
           </PrivateRoute>
         }
       />
 
       <Route 
-        path='/admin/dashboard'
+        path="/admin/dashboard"
         element={
           <PrivateRoute>
-            {/* {!user.isAdmin ? <Navigate to='/user/dashboard' /> : <AdminDashboard />} */}
-            <AdminDashboard />
+            {!user ? (
+              <Navigate to="/user/login" />
+            ) : !user.isAdmin ? (
+              <Navigate to="/user/dashboard" />
+            ) : (
+              <AdminDashboard />
+            )}
           </PrivateRoute>
         }
       />

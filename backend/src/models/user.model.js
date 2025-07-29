@@ -94,7 +94,7 @@ User.prototype.generateRefreshToken = function () {
 
 const modelSync = async () => {
     await sequelize.sync({
-        force: true
+        alter: true
     });
     console.log("models synchronized successfully !");
 }

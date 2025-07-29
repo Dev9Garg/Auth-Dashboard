@@ -25,12 +25,12 @@ router.route("/addEmail").post(
     addEmail
 )
 
-router.route("/removeEmail").delete(
+router.route("/removeEmail").post(
     verifyJWT,
     removeEmail
 )
 
-router.route("/removeUser").delete(
+router.route("/removeUser").post(
     verifyJWT,
     removeUser
 )

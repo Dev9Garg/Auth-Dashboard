@@ -12,7 +12,7 @@ function Login () {
 
     const navigate = useNavigate();
 
-    const {user, setUser} = useAuth();
+    const {setUser} = useAuth();
 
     const [formData, setFormData] = useState({
         identifier: "",

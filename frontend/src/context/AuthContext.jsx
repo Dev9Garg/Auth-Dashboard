@@ -7,6 +7,8 @@ const AuthContext = createContext();
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
 
+  const [loading, setLoading] = useState(true);
+
   const fetchProfile = () => {
     axios.get(`${authUrl}/users/profile`, {
       withCredentials: true
@@ -15,16 +17,19 @@ export const AuthProvider = ({ children }) => {
       setUser(res.data.data);
     })
     .catch((err) => {
-      setUser(null)
+      setUser(null);
     })
+    .finally(() => {
+      setLoading(false); 
+    });
   };
 
   useEffect(() => {
-    fetchProfile(); 
+    fetchProfile();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, setUser }}>
+    <AuthContext.Provider value={{ user, setUser, loading }}>
       {children}
     </AuthContext.Provider>
   );

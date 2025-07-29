@@ -1,17 +1,28 @@
-import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { User, BlacklistEmails } from "../models/user.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { Op } from '@sequelize/core';
 import bcrypt from "bcrypt" 
-import { contactNumberValidation, emailValidation, usernameValidation } from "../schemas/signUpSchema.js";
+import { 
+    emailValidation, 
+    passwordValidation, 
+    usernameValidation 
+} from "../schemas/signUpSchema.js";
 
+// method for generating access and refresh token
 const generateAccessAndRefreshToken = async (userId) => {
     try {
         const user = await User.findByPk(userId);
 
         if (!user) {
-            throw new ApiError(404, "User not found while generating tokens");
+            res
+            .status(404)
+            .json(
+                { 
+                    success: false, 
+                    message: "User not found while generating tokens"
+                }
+            );
         }
         
         const accessToken = user.generateAccessToken()
@@ -24,10 +35,14 @@ const generateAccessAndRefreshToken = async (userId) => {
         return {accessToken, refreshToken}
     } catch (error) {
         console.error("Token generation error:", error);
-        throw new ApiError(
-            500,
-            "Something went wrong while generating access and refresh tokens"
-        )
+        res
+        .status(500)
+        .json(
+            { 
+                success: false, 
+                message: "Something went wrong while generating access and refresh tokens"
+            }
+        );
     }
 }
 
@@ -44,27 +59,43 @@ const register = asyncHandler( async (req, res) => {
     if(
         [username, email, fullName, contactNumber, password].some((field) => field?.trim() === "")
     ) {
-        throw new ApiError(
-            400,
-            "All fields are required !!"
-        )
+        res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "All fields are required !!" 
+            }
+        );
     }
 
     if(!(usernameValidation.safeParse(username)).success) {
-        throw new ApiError(
-            400,
-            "Enter username in correct format !!"
-        )
+        res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "Enter username in correct format !!"
+            }
+        );
     } else if (!(emailValidation.safeParse(email)).success) {
-        throw new ApiError(
-            400,
-            "Enter email in correct format !!"
-        )
-    } else if (!(contactNumberValidation.safeParse(contactNumber)).success) {
-        throw new ApiError(
-            400,
-            "Enter contact number in correct format !!"
-        )
+        res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "Enter mail in correct format !!"
+            }
+        );
+    } else if(!(passwordValidation.safeParse(password)).success) {
+        res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "Enter password in correct format !!"
+            }
+        );
     }
 
     const blacklistedEmail = await BlacklistEmails.findAll({
@@ -74,27 +105,34 @@ const register = asyncHandler( async (req, res) => {
     })
 
     if(blacklistedEmail.length !== 0) {
-        throw new ApiError(
-            400,
-            "You cannot signup as this email has been blacklisted !!"
-        )
+        res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "You cannot signup as this email has been blacklisted !!"
+            }
+        );
     }
 
     const existingUser = await User.findAll({
         where: {
             [Op.or]: {
                 username: username,
-                email: email,
-                contactNumber: contactNumber
+                email: email
             },
         }
     });
 
     if(existingUser.length !== 0) {
-        throw new ApiError(
-            400, 
-            "Username, email or contact number already exists !!"
-        )
+        res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "Username or email already exists !!"
+            }
+        );
     }
 
     const hashedpassword = await bcrypt.hash(password, 10)
@@ -118,26 +156,42 @@ const register = asyncHandler( async (req, res) => {
         })
     
         if(!createdUser) {
-            throw new ApiError(
-                500,
-                "Something went wrong while registering the user !"
-            )
+            res
+            .status(400)
+            .json(
+                { 
+                    success: false, 
+                    message: "Something went wrong while registering the user !"
+                }
+            );
         }
     
-        return res.status(201).json(
+        return res
+        .status(201)
+        .json(
             new ApiResponse(
                 200, 
                 createdUser,
                 "User registered successfully !!"
             )
         )
+
     } catch (err) {
         console.error("User registration error:");
         console.error("Message:", err.message);
+
         if (err.original) {
             console.error("Original PG error:", err.original.detail || err.original.message);
         }
-        res.status(500).json({ success: false, message: err.message });
+
+        res
+        .status(500)
+        .json(
+            { 
+                success: false, 
+                message: err.message 
+            }
+        );
     }
 })
 
@@ -156,10 +210,14 @@ const login = asyncHandler( async (req, res) => {
     if(
         [identifier, password].some((field) => field?.trim() === "")
     ) {
-        throw new ApiError(
-            400, 
-            "All fields are required !!"
-        )
+        res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "All fields are required !!"
+            }
+        );
     }
 
     const blacklistedEmail = await BlacklistEmails.findAll({
@@ -169,10 +227,14 @@ const login = asyncHandler( async (req, res) => {
     })
 
     if(blacklistedEmail.length !== 0) {
-        throw new ApiError(
-            400,
-            "You cannot login as this email has been blacklisted !!"
-        )
+        res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "You cannot login as this email has been blacklisted !!"
+            }
+        );
     }
 
     const checkUser = await User.findOne({
@@ -185,25 +247,34 @@ const login = asyncHandler( async (req, res) => {
     })
 
     if(!checkUser) {
-        throw new ApiError(
-            400,
-            "User with this email or username does not exist !"
-        )
+        res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "User with this email or username does not exist !"
+            }
+        );
     }
 
     const checkPassword = await bcrypt.compare(password, checkUser.password)
 
     if(!checkPassword) {
-        throw new ApiError(
-            400, 
-            "Password is wrong !"
-        )
+        res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "Password is wrong !"
+            }
+        );
     }
 
     const {accessToken, refreshToken} = await generateAccessAndRefreshToken(checkUser.id);
 
     const loggedInUser = await User.findByPk(
-        checkUser.id,{
+        checkUser.id,
+        {
             attributes: {exclude: ['password', 'refreshToken']}
         }
     )
@@ -279,10 +350,14 @@ const allUsers = asyncHandler( async (req, res) => {
     const user = req.user;
 
     if(!user.isAdmin) {
-        throw new ApiError(
-            401,
-            "You are not admin, so pls do not try to access this route !!"
-        )
+        res
+        .status(401)
+        .json(
+            { 
+                success: false, 
+                message: "You are not admin, so pls do not try to access this route !!"
+            }
+        );
     }
 
     const allUser = await User.findAll();
@@ -313,10 +388,14 @@ const adminProfile = asyncHandler( async (req, res) => {
     const user = req.user
 
     if(!user.isAdmin) {
-        throw new ApiError(
-            400,
-            "You are not admin !!"
-        )
+        res
+        .status(401)
+        .json(
+            { 
+                success: false, 
+                message: "You are not admin !!"
+            }
+        );
     }
 
     return res
@@ -335,19 +414,27 @@ const removeUser = asyncHandler( async (req, res) => {
     const user = req.user
 
     if(!user.isAdmin) {
-        throw new ApiError(
-            401, 
-            "You are not admin, so you can't delete the user from the database !!"
-        )
+        res
+        .status(401)
+        .json(
+            { 
+                success: false, 
+                message: "You are not admin, so you can't delete the user from the database !!"
+            }
+        );
     }
 
     const {userId} = req.body;
 
     if(userId.trim() === "") {
-        throw new ApiError(
-            400,
-            "Please provide some id for deleting the user !!"
-        )
+        res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "Please provide some id for deleting the user !!"
+            }
+        );
     }
 
     const notExistingUserId = await User.findAll({
@@ -357,10 +444,14 @@ const removeUser = asyncHandler( async (req, res) => {
     })
 
     if(notExistingUserId.length === 0) {
-        throw new ApiError(
-            400,
-            "Such userId does not exist, so it can't be deleted !!"
-        )
+        res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "Such userId does not exist, so it can't be deleted !!"
+            }
+        );
     }
 
     const deletedUserId = await User.destroy({
@@ -370,10 +461,14 @@ const removeUser = asyncHandler( async (req, res) => {
     })
 
     if(!deletedUserId) {
-        throw new ApiError(
-            500,
-            "Something went wrong while deleting the user !!"
-        )
+        res
+        .status(500)
+        .json(
+            { 
+                success: false, 
+                message: "Something went wrong while deleting the user !!"
+            }
+        );
     }
 
     return res
@@ -391,10 +486,14 @@ const updateUserDetails = asyncHandler( async (req, res) => {
     const user = req.user;
 
     if(!user.isAdmin) {
-        throw new ApiError(
-            400,
-            "You are not admin, so you can't update the details of the user !!"
-        )
+        res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "You are not admin, so you can't update the details of the user !!"
+            }
+        );
     }
 
     const{fullName, username, contactNumber, email, userId} = req.body
@@ -402,10 +501,14 @@ const updateUserDetails = asyncHandler( async (req, res) => {
     if(
         [fullName, username, contactNumber, email].some((field) => field?.trim() === "") 
     ) {
-        throw new ApiError(
-            400,
-            "Please fill all the fields !!"
-        )
+        res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "Please fill all the fields !!"
+            }
+        );
     }
 
     const existingUser = await User.findOne({
@@ -415,10 +518,14 @@ const updateUserDetails = asyncHandler( async (req, res) => {
     })
 
     if(!existingUser) {
-        throw new ApiError(
-            400,
-            "No such user exist in the database whose details you are trying to update !!"
-        )
+        res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "No such user exist in the database whose details you are trying to update !!"
+            }
+        );
     }
 
     const userToBeUpdated = await existingUser.update(
@@ -431,10 +538,14 @@ const updateUserDetails = asyncHandler( async (req, res) => {
     )
 
     if(!userToBeUpdated) {
-        throw new ApiError(
-            500,
-            "Something went wrong while updating the details of the user !!"
-        )
+        res
+        .status(500)
+        .json(
+            { 
+                success: false, 
+                message: "Something went wrong while updating the details of the user !!"
+            }
+        );
     }
 
     const updatedUser = await User.findOne({
@@ -466,10 +577,14 @@ const updateDetails = asyncHandler( async (req, res) => {
     if(
         [fullName, contactNumber].some((field) => field?.trim() === "") 
     ) {
-        throw new ApiError(
-            400,
-            "Please fill all the fields !!"
-        )
+        res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "Please fill all the fields !!"
+            }
+        );
     }
 
     const updateUser = await user.update({
@@ -478,10 +593,14 @@ const updateDetails = asyncHandler( async (req, res) => {
     })
 
     if(!updateUser) {
-        throw new ApiError(
-            500,
-            "Something went wrong while updating the user details !!"
-        )
+        res
+        .status(500)
+        .json(
+            { 
+                success: false, 
+                message: "Something went wrong while updating the user details !!"
+            }
+        );
     }
 
     const updatedUser = await User.findOne({

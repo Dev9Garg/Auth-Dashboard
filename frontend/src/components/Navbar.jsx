@@ -48,7 +48,7 @@ function Navbar () {
                     <button
                     className="font-bold"
                     >
-                        <Link to="/dashboard">Dashboard</Link>
+                        <Link to="/user/dashboard">Dashboard</Link>
                     </button>
                 </div> 
                 : ""}
@@ -67,13 +67,13 @@ function Navbar () {
                 <button
                 className="font-bold"
                 >
-                    <Link to="/signup">Signup</Link>
+                    <Link to="/user/signup">Signup</Link>
                 </button>
 
                 <button
                 className="font-bold"
                 >
-                    <Link to="/login">Login</Link>
+                    <Link to="/user/login">Login</Link>
                 </button>
             </div>}
         </div>

@@ -17,15 +17,14 @@ export const passwordValidation = z
 
 export const emailValidation = z.email({error: "Pls enter a valid email !!"})
 
-export const contactNumberValidation = z
-    .string()
-    .max(10)
-    .min(10)
+// export const contactNumberValidation = z
+//     .string()
+//     .regex(/^\d{10}$/, "Contact number must be exactly 10 digits");
 
 
 export const signUpValidation = z.object({
     username: usernameValidation,
     email: emailValidation,
-    password: passwordValidation,
-    contactNumber: contactNumberValidation
+    password: passwordValidation
+    // contactNumber: contactNumberValidation
 })

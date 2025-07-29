@@ -11,7 +11,7 @@ import axios from "axios"
 import { authUrl } from "../config/config.js"
 
 // import for schema validation 
-import {signUpValidation, 
+import {
         usernameValidation, 
         passwordValidation, 
         emailValidation
@@ -26,7 +26,9 @@ function Signup () {
     const [formData, setFormData] = useState({
         username: "",
         email: "",
-        password: ""
+        password: "",
+        contactNumber: "",
+        fullName: ""
     })
 
     const [usernameCheck, setUsernameCheck] = useState(false);
@@ -54,6 +56,12 @@ function Signup () {
         </ul>
     `
 
+    const contactNumberTooltipContent = `
+        <ul>
+            <li>Enter only a 10 digit number.</li>
+        </ul>
+    `
+
     const isFormComplete = !formData.username || !formData.email || !formData.password || loading;
 
     const handleOnClick = () => {
@@ -72,26 +80,27 @@ function Signup () {
             toast.error("Please first correct the password according to the required condition !!");
             setLoading(false);
             return;
-        }
+        } 
 
-        const result = signUpValidation.safeParse(formData);
 
-        axios.post(`${authUrl}/users/register`, result.data, {
+        axios.post(`${authUrl}/users/register`, formData, {
             headers: {"Content-Type": "application/json"},
             withCredentials: true
         })
         .then(() => {
             setLoading(false);
             toast.success("registered successfully !")
-            navigate(`/login`)
+            navigate(`/user/login`)
         })
         .catch((err) => {
-            console.log("something went wrong while registering the user : ", err.response.data)
-            toast.error("Something went wrong while registering you !!")
+            console.log("something went wrong while registering the user : ", err)
+            toast.error(err.response.data.message)
             setLoading(false);
         })
     }
 
+
+    // validation functions 
     const inputUsernameValidation = () => {
         setUsernameCheck(false);
 
@@ -136,7 +145,7 @@ function Signup () {
         className="flex justify-center items-center"
         >
             <div
-            className="flex flex-col border rounded-4xl bg-cyan-400 p-4 m-4 w-[40%]"
+            className="flex flex-col border rounded-4xl bg-cyan-400 p-4 m-4"
             >
 
                 {/* heading */}
@@ -192,6 +201,50 @@ function Signup () {
                 onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                 value={formData.email}
                 onBlur={inputEmailValidation}
+                className="border rounded-4xl bg-white p-4 m-4"
+                />
+
+
+                {/* full name */}
+
+                <label 
+                htmlFor="fullNameInput"
+                className="ml-4 font-bold"
+                >
+                    Full Name : 
+                </label>
+
+                <input 
+                name="fullName"
+                id="fullNameInput"
+                type="text" 
+                placeholder="Enter your full name ..."
+                onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
+                value={formData.fullName}
+                className="border rounded-4xl bg-white p-4 m-4"
+                />
+
+
+                {/* contact number */}
+
+                <Tooltip 
+                id="contactNumber-tooltip"
+                />
+
+                <label 
+                htmlFor="contactNumberInput"
+                className="ml-4 font-bold"
+                >
+                    Contact Number : <span data-tooltip-id="contactNumber-tooltip" data-tooltip-html={contactNumberTooltipContent}><FontAwesomeIcon icon={faInfoCircle} size="sm" /></span>
+                </label>
+
+                <input 
+                name="contactNumber"
+                id="contactNumberInput"
+                type="text" 
+                placeholder="Enter your contact number ..."
+                onChange={(e) => setFormData(prev => ({ ...prev, contactNumber: e.target.value }))}
+                value={formData.contactNumber}
                 className="border rounded-4xl bg-white p-4 m-4"
                 />
 

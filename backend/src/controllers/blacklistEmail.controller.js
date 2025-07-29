@@ -1,4 +1,3 @@
-import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { BlacklistEmails } from "../models/user.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
@@ -8,21 +7,27 @@ const addEmail = asyncHandler( async (req, res) => {
     const user = req.user;
 
     if(!user.isAdmin) {
-        throw new ApiError(
-            401,
-            "You are not admin, so you can't blacklist the emails !!"
-        )
+        res
+        .status(401)
+        .json(
+            { 
+                success: false, 
+                message: "You are not admin, so you can't blacklist the emails !!"
+            }
+        );
     }
 
     const {email} = req.body;
 
-    console.log(email);
-
     if(email?.trim() === "") {
-        throw new ApiError(
-            400,
-            "Please provide some email before adding it !!"
-        )
+        res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "Please provide some email before adding it !!"
+            }
+        );
     }
 
     const existingEmail = await BlacklistEmails.findAll({
@@ -32,17 +37,25 @@ const addEmail = asyncHandler( async (req, res) => {
     })
 
     if(existingEmail.length !== 0) {
-        throw new ApiError(
-            400,
-            "Email already exists !!"
-        )
+        res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "Email already exists !!"
+            }
+        );
     }
 
     if(email === user.email) {
-        throw new ApiError(
-            400,
-            "You can't blacklist your own email !!"
-        )
+        res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "You can't blacklist your own email !!"
+            }
+        );
     }
 
     const createdEmail = await BlacklistEmails.create({
@@ -50,10 +63,14 @@ const addEmail = asyncHandler( async (req, res) => {
     })
 
     if(!createdEmail) {
-        throw new ApiError(
-            500,
-            "Something went wrong while adding the email !!"
-        )
+        res
+        .status(500)
+        .json(
+            { 
+                success: false, 
+                message: "Something went wrong while adding the email !!"
+            }
+        );
     }
 
     return res
@@ -72,19 +89,27 @@ const removeEmail = asyncHandler( async (req, res) => {
     const user = req.user
 
     if(!user.isAdmin) {
-        throw new ApiError(
-            401,
-            "You are not admin, so you can't delete the blacklisted emails !!"
-        )
+        res
+        .status(401)
+        .json(
+            { 
+                success: false, 
+                message: "You are not admin, so you can't delete the blacklisted emails !!"
+            }
+        );
     }
 
     const {emailId} = req.body
 
     if(emailId.trim() === "") {
-        throw new ApiError(
-            400,
-            "Please provide id of the email which is to be deleted !!"
-        )
+        res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "Please provide id of the email which is to be deleted !!"
+            }
+        );
     }
 
     const notExistingId = await BlacklistEmails.findAll({
@@ -94,10 +119,14 @@ const removeEmail = asyncHandler( async (req, res) => {
     })
 
     if(notExistingId.length === 0) {
-        throw new ApiError(
-            400,
-            "Such email id does not exist, so it can't be deleted"
-        )
+        res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "Such email id does not exist, so it can't be deleted"
+            }
+        );
     }
 
     const deletedId = await BlacklistEmails.destroy({
@@ -107,10 +136,14 @@ const removeEmail = asyncHandler( async (req, res) => {
     })
 
     if(!deletedId) {
-        throw new ApiError(
-            500,
-            "Something went wrong while deleting the requested Id !!"
-        )
+        res
+        .status(500)
+        .json(
+            { 
+                success: false, 
+                message: "Something went wrong while deleting the requested Id !!"
+            }
+        );
     }
 
     return res
@@ -128,10 +161,14 @@ const allBlacklistedEmails = asyncHandler( async (req, res) => {
     const user = req.user;
 
     if(!user.isAdmin) {
-        throw new ApiError(
-            401,
-            "You are not admin, so you can't see the blacklisted emails !!"
-        )
+        res
+        .status(401)
+        .json(
+            { 
+                success: false, 
+                message: "You are not admin, so you can't see the blacklisted emails !!"
+            }
+        );
     }
 
     const blacklistedEmails = await BlacklistEmails.findAll()

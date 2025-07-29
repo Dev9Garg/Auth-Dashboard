@@ -7,7 +7,9 @@ function Dashboard () {
 
     const [data, setData] = useState({
         email: "",
-        username: ""
+        username: "",
+        contactNumber: "",
+        fullName: ""
     });
 
     const userProfile = () => {
@@ -17,7 +19,9 @@ function Dashboard () {
         .then((res) => {
             setData({
                 email: res.data.data.email,
-                username: res.data.data.username
+                username: res.data.data.username,
+                contactNumber: res.data.data.contactNumber,
+                fullName: res.data.data.fullName
             })
 
             toast.success(res.data.message);
@@ -82,6 +86,38 @@ function Dashboard () {
                             className="font-bold ml-2"
                             >
                                 {data.email}
+                            </span>
+                        </p>
+
+                        <p
+                        className="border rounded-2xl m-2 p-2 bg-violet-400"
+                        >
+                            <span
+                            className="font-bold"
+                            >
+                                full name:
+                            </span> 
+                            
+                            <span
+                            className="font-bold ml-2"
+                            >
+                                {data.fullName}
+                            </span>
+                        </p>
+
+                        <p
+                        className="border rounded-2xl m-2 p-2 bg-violet-400"
+                        >
+                            <span
+                            className="font-bold"
+                            >
+                                contact number:
+                            </span> 
+                            
+                            <span
+                            className="font-bold ml-2"
+                            >
+                                {data.contactNumber}
                             </span>
                         </p>
                     </div>

@@ -20,14 +20,12 @@ const User = sequelize.define(
 
         contactNumber: {
             type: DataTypes.STRING,
-            allowNull: false,
-            unique: true
+            allowNull: false
         },
 
         fullName: {
             type: DataTypes.STRING,
-            allowNull: false,
-            unique: false
+            allowNull: false
         },
 
         password: {
@@ -96,7 +94,7 @@ User.prototype.generateRefreshToken = function () {
 
 const modelSync = async () => {
     await sequelize.sync({
-        alter: true
+        force: true
     });
     console.log("models synchronized successfully !");
 }

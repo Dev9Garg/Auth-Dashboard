@@ -33,15 +33,18 @@ function Login () {
         })
         .then((res) => {
             setLoading(false);
-            // console.log(res.data.data.user);
             setUser(res.data.data.user)
-            // console.log(user);
             toast.success("Logged in successfully !!");
-            // navigate(`/user/dashboard`);
+    
+            if(res.data.data.user.isAdmin) {
+                navigate("/admin/dashboard")
+            }else {
+                navigate("/user/dashboard")
+            }
         })
         .catch((err) => {
-            console.log("Something went wrong while logging in !!", err);
-            toast.error("Something went wrong while logging you in !!")
+            console.log("Something went wrong while logging in : ", err);
+            toast.error(err.response.data.message)
             setLoading(false);
         })
     }
@@ -51,7 +54,7 @@ function Login () {
         className="flex justify-center items-center"
         >
             <div
-            className="flex flex-col border rounded-4xl bg-cyan-400 p-4 m-4 w-[30%]"
+            className="flex flex-col border rounded-4xl bg-cyan-400 p-4 m-4"
             >
 
                 <h1

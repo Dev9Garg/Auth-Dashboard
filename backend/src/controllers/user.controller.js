@@ -1,0 +1,518 @@
+import { ApiError } from "../utils/ApiError.js";
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { User, BlacklistEmails } from "../models/user.model.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+import { Op } from '@sequelize/core';
+import bcrypt from "bcrypt" 
+import { contactNumberValidation, emailValidation, usernameValidation } from "../schemas/signUpSchema.js";
+
+const generateAccessAndRefreshToken = async (userId) => {
+    try {
+        const user = await User.findByPk(userId);
+
+        if (!user) {
+            throw new ApiError(404, "User not found while generating tokens");
+        }
+        
+        const accessToken = user.generateAccessToken()
+        const refreshToken = user.generateRefreshToken()
+
+        user.refreshToken = refreshToken
+
+        await user.save({validate: false})
+
+        return {accessToken, refreshToken}
+    } catch (error) {
+        console.error("Token generation error:", error);
+        throw new ApiError(
+            500,
+            "Something went wrong while generating access and refresh tokens"
+        )
+    }
+}
+
+// POST request for adding the user in the database
+const register = asyncHandler( async (req, res) => {
+    // want paramter username, email and password
+    // validation that if all are there or not 
+    // if all present - check if the user already exists in the database or not 
+    // if present show msg - user already exists
+    // if does not present then store the user details in the database and show success msg 
+
+    const {username, email, fullName, contactNumber, password} = req.body;
+ 
+    if(
+        [username, email, fullName, contactNumber, password].some((field) => field?.trim() === "")
+    ) {
+        throw new ApiError(
+            400,
+            "All fields are required !!"
+        )
+    }
+
+    if(!(usernameValidation.safeParse(username)).success) {
+        throw new ApiError(
+            400,
+            "Enter username in correct format !!"
+        )
+    } else if (!(emailValidation.safeParse(email)).success) {
+        throw new ApiError(
+            400,
+            "Enter email in correct format !!"
+        )
+    } else if (!(contactNumberValidation.safeParse(contactNumber)).success) {
+        throw new ApiError(
+            400,
+            "Enter contact number in correct format !!"
+        )
+    }
+
+    const blacklistedEmail = await BlacklistEmails.findAll({
+        where: {
+            email: email
+        }
+    })
+
+    if(blacklistedEmail.length !== 0) {
+        throw new ApiError(
+            400,
+            "You cannot signup as this email has been blacklisted !!"
+        )
+    }
+
+    const existingUser = await User.findAll({
+        where: {
+            [Op.or]: {
+                username: username,
+                email: email,
+                contactNumber: contactNumber
+            },
+        }
+    });
+
+    if(existingUser.length !== 0) {
+        throw new ApiError(
+            400, 
+            "Username, email or contact number already exists !!"
+        )
+    }
+
+    const hashedpassword = await bcrypt.hash(password, 10)
+
+    try {
+        const user = await User.create({
+            username: username,
+            email: email,
+            password: hashedpassword,
+            fullName: fullName,
+            contactNumber: contactNumber
+        })
+    
+        const createdUser = await User.findOne({
+            where: {
+                id: user.id
+            },
+            attributes: {
+                exclude: ['password', 'refreshToken']
+            }
+        })
+    
+        if(!createdUser) {
+            throw new ApiError(
+                500,
+                "Something went wrong while registering the user !"
+            )
+        }
+    
+        return res.status(201).json(
+            new ApiResponse(
+                200, 
+                createdUser,
+                "User registered successfully !!"
+            )
+        )
+    } catch (err) {
+        console.error("User registration error:");
+        console.error("Message:", err.message);
+        if (err.original) {
+            console.error("Original PG error:", err.original.detail || err.original.message);
+        }
+        res.status(500).json({ success: false, message: err.message });
+    }
+})
+
+// POST request for logging in the user
+const login = asyncHandler( async (req, res) => {
+    // ask for email and password
+    // check if both parameters came or not 
+    // check if the user exists or not 
+    // if does not exist then show msg that the username or email is not registered 
+    // if exists then check if the password is correct 
+    // if wrong password then show msg that wrong password 
+    // if correct password then login 
+
+    const {identifier, password} = req.body;
+
+    if(
+        [identifier, password].some((field) => field?.trim() === "")
+    ) {
+        throw new ApiError(
+            400, 
+            "All fields are required !!"
+        )
+    }
+
+    const blacklistedEmail = await BlacklistEmails.findAll({
+        where: {
+            email: identifier
+        }
+    })
+
+    if(blacklistedEmail.length !== 0) {
+        throw new ApiError(
+            400,
+            "You cannot login as this email has been blacklisted !!"
+        )
+    }
+
+    const checkUser = await User.findOne({
+        where: {
+            [Op.or]: {
+                username: identifier,
+                email: identifier,
+            },
+        }
+    })
+
+    if(!checkUser) {
+        throw new ApiError(
+            400,
+            "User with this email or username does not exist !"
+        )
+    }
+
+    const checkPassword = await bcrypt.compare(password, checkUser.password)
+
+    if(!checkPassword) {
+        throw new ApiError(
+            400, 
+            "Password is wrong !"
+        )
+    }
+
+    const {accessToken, refreshToken} = await generateAccessAndRefreshToken(checkUser.id);
+
+    const loggedInUser = await User.findByPk(
+        checkUser.id,{
+            attributes: {exclude: ['password', 'refreshToken']}
+        }
+    )
+
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+
+    return res
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json(
+        new ApiResponse(
+            200, 
+            {
+                user: loggedInUser
+            },
+            "You are logged in successfully !"
+        )
+    )
+    
+})
+
+// POST request for loggint out the user
+const logout = asyncHandler( async (req, res) => {
+    
+    await User.update(
+        {refreshToken: null},
+        {
+            where: {
+                id: req.user.id
+            }
+        }
+    )
+
+    const options = {
+        httpOnly: true,
+        secure: true
+    }
+
+    return res
+    .status(200)
+    .clearCookie("accessToken", options)
+    .clearCookie("refreshToken", options)
+    .json(
+        new ApiResponse(
+            200,
+            {},
+            "you are logged out successfully !"
+        )
+    )
+})
+
+// GET request for fetching the user profile 
+const userProfile = asyncHandler( async (req,res) => {
+    const user = req.user;
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            user,
+            "User profile fetched successfully !!"
+        )
+    )
+})
+
+// GET request for fetching the list of all the users for the admin
+const allUsers = asyncHandler( async (req, res) => {
+    const user = req.user;
+
+    if(!user.isAdmin) {
+        throw new ApiError(
+            401,
+            "You are not admin, so pls do not try to access this route !!"
+        )
+    }
+
+    const allUser = await User.findAll();
+
+    // allUser is an array where User named object is there at every index equals to the number of the user
+    // so loop on the allUser and access each element of it (User) and it has stored data in it in dataValues field
+    // which itself is an object and all the attributes are there in it.
+
+    // for(let i = 0; i < allUser.length; i++) {
+    //     console.log(allUser[i].dataValues.username);
+    //     console.log(allUser[i].dataValues.email);
+    //     console.log("-------------------")
+    // }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            allUser,
+            "all users profile fetched successfully !!"
+        )
+    )
+})
+
+// GET request for fetching the admin profile 
+const adminProfile = asyncHandler( async (req, res) => {
+    const user = req.user
+
+    if(!user.isAdmin) {
+        throw new ApiError(
+            400,
+            "You are not admin !!"
+        )
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            user,
+            "Admin profile fetched successfully !!"
+        )
+    )
+})
+
+// DELETE request for deleting the user from the database (can only be done by the admin)
+const removeUser = asyncHandler( async (req, res) => {
+    const user = req.user
+
+    if(!user.isAdmin) {
+        throw new ApiError(
+            401, 
+            "You are not admin, so you can't delete the user from the database !!"
+        )
+    }
+
+    const {userId} = req.body;
+
+    if(userId.trim() === "") {
+        throw new ApiError(
+            400,
+            "Please provide some id for deleting the user !!"
+        )
+    }
+
+    const notExistingUserId = await User.findAll({
+        where: {
+            id: userId
+        }
+    })
+
+    if(notExistingUserId.length === 0) {
+        throw new ApiError(
+            400,
+            "Such userId does not exist, so it can't be deleted !!"
+        )
+    }
+
+    const deletedUserId = await User.destroy({
+        where: {
+            id: userId
+        }
+    })
+
+    if(!deletedUserId) {
+        throw new ApiError(
+            500,
+            "Something went wrong while deleting the user !!"
+        )
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            "Successfully deleted the user from the database !!"
+        )
+    )
+})
+
+// PATCH request for updating the details of the user (can only be done by the admin)
+const updateUserDetails = asyncHandler( async (req, res) => {
+    const user = req.user;
+
+    if(!user.isAdmin) {
+        throw new ApiError(
+            400,
+            "You are not admin, so you can't update the details of the user !!"
+        )
+    }
+
+    const{fullName, username, contactNumber, email, userId} = req.body
+
+    if(
+        [fullName, username, contactNumber, email].some((field) => field?.trim() === "") 
+    ) {
+        throw new ApiError(
+            400,
+            "Please fill all the fields !!"
+        )
+    }
+
+    const existingUser = await User.findOne({
+        where: {
+            id: userId
+        }
+    })
+
+    if(!existingUser) {
+        throw new ApiError(
+            400,
+            "No such user exist in the database whose details you are trying to update !!"
+        )
+    }
+
+    const userToBeUpdated = await existingUser.update(
+        {
+            fullName: fullName,
+            username: username,
+            email: email,
+            contactNumber: contactNumber
+        }
+    )
+
+    if(!userToBeUpdated) {
+        throw new ApiError(
+            500,
+            "Something went wrong while updating the details of the user !!"
+        )
+    }
+
+    const updatedUser = await User.findOne({
+        where: {
+            id: userId
+        },
+        attributes: {
+            exclude: ['password', 'refreshToken']
+        }
+    })
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            updatedUser,
+            "User details updated successfully !!"
+        )
+    )
+})
+
+// PATCH request for updating the details of the user 
+const updateDetails = asyncHandler( async (req, res) => {
+    const user = req.user;
+
+    const{fullName, contactNumber} = req.body
+
+    if(
+        [fullName, contactNumber].some((field) => field?.trim() === "") 
+    ) {
+        throw new ApiError(
+            400,
+            "Please fill all the fields !!"
+        )
+    }
+
+    const updateUser = await user.update({
+        fullName: fullName,
+        contactNumber: contactNumber
+    })
+
+    if(!updateUser) {
+        throw new ApiError(
+            500,
+            "Something went wrong while updating the user details !!"
+        )
+    }
+
+    const updatedUser = await User.findOne({
+        where: {
+            email: user.email
+        },
+        attributes: {
+            exclude: ['password', 'refreshToken']
+        }
+    })
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            updatedUser,
+            "Details updated successfully !!"
+        )
+    )
+})
+
+
+export {
+    register,
+    login,
+    logout,
+    userProfile,
+    allUsers,
+    removeUser,
+    adminProfile,
+    updateUserDetails,
+    updateDetails
+}

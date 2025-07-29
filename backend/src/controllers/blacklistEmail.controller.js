@@ -7,7 +7,7 @@ const addEmail = asyncHandler( async (req, res) => {
     const user = req.user;
 
     if(!user.isAdmin) {
-        res
+        return res
         .status(401)
         .json(
             { 
@@ -17,10 +17,10 @@ const addEmail = asyncHandler( async (req, res) => {
         );
     }
 
-    const {email} = req.body;
+    const {emailToBeBlacklisted} = req.body;
 
-    if(email?.trim() === "") {
-        res
+    if(emailToBeBlacklisted?.trim() === "" || emailToBeBlacklisted === undefined) {
+        return res
         .status(400)
         .json(
             { 
@@ -32,12 +32,12 @@ const addEmail = asyncHandler( async (req, res) => {
 
     const existingEmail = await BlacklistEmails.findAll({
         where: {
-            email: email
+            email: emailToBeBlacklisted
         }
     })
 
     if(existingEmail.length !== 0) {
-        res
+        return res
         .status(400)
         .json(
             { 
@@ -47,8 +47,8 @@ const addEmail = asyncHandler( async (req, res) => {
         );
     }
 
-    if(email === user.email) {
-        res
+    if(emailToBeBlacklisted === user.email) {
+        return res
         .status(400)
         .json(
             { 
@@ -59,11 +59,11 @@ const addEmail = asyncHandler( async (req, res) => {
     }
 
     const createdEmail = await BlacklistEmails.create({
-        email: email
+        email: emailToBeBlacklisted
     })
 
     if(!createdEmail) {
-        res
+        return res
         .status(500)
         .json(
             { 
@@ -89,7 +89,7 @@ const removeEmail = asyncHandler( async (req, res) => {
     const user = req.user
 
     if(!user.isAdmin) {
-        res
+        return res
         .status(401)
         .json(
             { 
@@ -101,8 +101,8 @@ const removeEmail = asyncHandler( async (req, res) => {
 
     const {emailId} = req.body
 
-    if(emailId.trim() === "") {
-        res
+    if(!emailId) {
+        return res
         .status(400)
         .json(
             { 
@@ -119,7 +119,7 @@ const removeEmail = asyncHandler( async (req, res) => {
     })
 
     if(notExistingId.length === 0) {
-        res
+        return res
         .status(400)
         .json(
             { 
@@ -136,7 +136,7 @@ const removeEmail = asyncHandler( async (req, res) => {
     })
 
     if(!deletedId) {
-        res
+        return res
         .status(500)
         .json(
             { 
@@ -161,7 +161,7 @@ const allBlacklistedEmails = asyncHandler( async (req, res) => {
     const user = req.user;
 
     if(!user.isAdmin) {
-        res
+        return res
         .status(401)
         .json(
             { 
@@ -184,8 +184,36 @@ const allBlacklistedEmails = asyncHandler( async (req, res) => {
     )
 })
 
+const allEmails = asyncHandler( async (req, res) => {
+    const user = req.user;
+
+    if(!user.isAdmin) {
+        return res
+        .status(401)
+        .json(
+            { 
+                success: false, 
+                message: "You are not admin, so pls do not try to access this route !!"
+            }
+        );
+    }
+
+    const allEmail = await BlacklistEmails.findAll();
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            allEmail,
+            "all emails fetched successfully !!"
+        )
+    )
+})
+
 export {
     addEmail,
     removeEmail,
-    allBlacklistedEmails
+    allBlacklistedEmails,
+    allEmails
 }

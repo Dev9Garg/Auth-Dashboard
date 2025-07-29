@@ -62,7 +62,7 @@ function Login () {
                 >
                     Login Form
 
-                    <p className="text-sm font-light">Already have an account ? <Link className="text-blue-800 underline decoration-sky-500" to="/signup">SignUp</Link></p>
+                    <p className="text-sm font-light">Already have an account ? <Link className="text-blue-800 underline decoration-sky-500" to="/user/signup">SignUp</Link></p>
                 </h1>
 
                 <label 

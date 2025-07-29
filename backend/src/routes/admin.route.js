@@ -1,6 +1,6 @@
 import {Router} from "express"
 import { adminProfile, allUsers, removeUser, updateUserDetails } from "../controllers/user.controller.js"
-import { addEmail, removeEmail, allBlacklistedEmails } from "../controllers/blacklistEmail.controller.js";
+import { addEmail, removeEmail, allBlacklistedEmails, allEmails } from "../controllers/blacklistEmail.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
@@ -13,6 +13,11 @@ router.route("/profile").get(
 router.route("/allUsers").get(
     verifyJWT,
     allUsers
+)
+
+router.route("/allEmails").get(
+    verifyJWT,
+    allEmails
 )
 
 router.route("/allBlacklistedEmails").get(

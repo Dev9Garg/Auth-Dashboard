@@ -155,7 +155,7 @@ function Signup () {
                 >
                     SignUp Form
 
-                    <p className="text-sm font-light">Already have an account ? <Link className="text-blue-800 underline decoration-sky-500" to="/login">Login</Link></p>
+                    <p className="text-sm font-light">Already have an account ? <Link className="text-blue-800 underline decoration-sky-500" to="/user/login">Login</Link></p>
                 </h1>
 
 

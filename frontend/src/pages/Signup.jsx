@@ -142,16 +142,16 @@ function Signup () {
 
     return (
         <div
-        className="flex justify-center items-center"
+        className="flex justify-center"
         >
             <div
-            className="flex flex-col border rounded-4xl bg-cyan-400 p-4 m-4"
+            className="flex flex-col border rounded-4xl bg-white p-4 m-4 min-w-lg"
             >
 
                 {/* heading */}
 
                 <h1
-                className="text-3xl font-bold text-center p-4 m-4"
+                className="text-3xl font-medium text-center p-4 m-4"
                 >
                     SignUp Form
 
@@ -163,11 +163,12 @@ function Signup () {
 
                 <Tooltip 
                 id="username-tooltip"
+                style={{backgroundColor: "rgb(0, 0, 0)"}}
                 />
 
                 <label 
                 htmlFor="usernameInput"
-                className="ml-4 font-bold"
+                className="ml-4 font-sans font-medium"
                 >
                     Username : <span data-tooltip-id="username-tooltip" data-tooltip-html={usernameTooltipContent}><FontAwesomeIcon icon={faInfoCircle} size="sm" /></span>
                 </label>
@@ -180,7 +181,7 @@ function Signup () {
                 onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
                 value={formData.username}
                 onBlur={inputUsernameValidation}
-                className="border rounded-4xl bg-white p-4 m-4"
+                className="border border-black rounded bg-white p-4 m-4"
                 />
 
 
@@ -188,7 +189,7 @@ function Signup () {
 
                 <label 
                 htmlFor="emailInput"
-                className="ml-4 font-bold"
+                className="ml-4 font-sans font-medium"
                 >
                     Email : 
                 </label>
@@ -201,7 +202,7 @@ function Signup () {
                 onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                 value={formData.email}
                 onBlur={inputEmailValidation}
-                className="border rounded-4xl bg-white p-4 m-4"
+                className="border border-black rounded bg-white p-4 m-4"
                 />
 
 
@@ -209,7 +210,7 @@ function Signup () {
 
                 <label 
                 htmlFor="fullNameInput"
-                className="ml-4 font-bold"
+                className="ml-4 font-sans font-medium"
                 >
                     Full Name : 
                 </label>
@@ -221,7 +222,7 @@ function Signup () {
                 placeholder="Enter your full name ..."
                 onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
                 value={formData.fullName}
-                className="border rounded-4xl bg-white p-4 m-4"
+                className="border border-black rounded bg-white p-4 m-4"
                 />
 
 
@@ -229,11 +230,12 @@ function Signup () {
 
                 <Tooltip 
                 id="contactNumber-tooltip"
+                style={{backgroundColor: "rgb(0, 0, 0)"}}
                 />
 
                 <label 
                 htmlFor="contactNumberInput"
-                className="ml-4 font-bold"
+                className="ml-4 font-sans font-medium"
                 >
                     Contact Number : <span data-tooltip-id="contactNumber-tooltip" data-tooltip-html={contactNumberTooltipContent}><FontAwesomeIcon icon={faInfoCircle} size="sm" /></span>
                 </label>
@@ -245,7 +247,7 @@ function Signup () {
                 placeholder="Enter your contact number ..."
                 onChange={(e) => setFormData(prev => ({ ...prev, contactNumber: e.target.value }))}
                 value={formData.contactNumber}
-                className="border rounded-4xl bg-white p-4 m-4"
+                className="border border-black rounded bg-white p-4 m-4"
                 />
 
 
@@ -253,11 +255,12 @@ function Signup () {
 
                 <Tooltip 
                 id="password-tooltip"
+                style={{backgroundColor: "rgb(0, 0, 0)"}}
                 />
 
                 <label 
                 htmlFor="passwordInput"
-                className="ml-4 font-bold"
+                className="ml-4 font-sans font-medium"
                 >
                     Password : <span data-tooltip-id="password-tooltip" data-tooltip-html={passwordTooltipContent}><FontAwesomeIcon icon={faInfoCircle} size="sm" /></span>
                 </label>
@@ -270,14 +273,14 @@ function Signup () {
                 onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                 value={formData.password}
                 onBlur={inputPasswordValidation}
-                className="border rounded-4xl bg-white p-4 m-4"
+                className="border border-black rounded bg-white p-4 m-4"
                 />
 
 
                 {/* button */}
 
                 <button
-                className="border rounded-4xl p-4 m-4 cursor-pointer bg-green-400 disabled:cursor-not-allowed disabled:bg-green-300"
+                className="border text-white rounded-xl p-4 m-4 cursor-pointer bg-black disabled:cursor-not-allowed"
                 onClick={handleOnClick}
                 disabled={isFormComplete} 
                 >

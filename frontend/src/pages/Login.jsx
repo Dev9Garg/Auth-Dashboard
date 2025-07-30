@@ -54,11 +54,11 @@ function Login () {
         className="flex justify-center items-center"
         >
             <div
-            className="flex flex-col border rounded-4xl bg-cyan-400 p-4 m-4"
+            className="flex flex-col border rounded-2xl bg-white p-4 m-4 min-w-md"
             >
 
                 <h1
-                className="text-3xl font-bold text-center p-4 m-4"
+                className="text-3xl font-medium text-center p-4 m-4"
                 >
                     Login Form
 
@@ -67,7 +67,7 @@ function Login () {
 
                 <label 
                 htmlFor="emailOrUsernameInput"
-                className="ml-4 font-bold"
+                className="ml-4 font-sans font-medium"
                 >
                     Email or Username : 
                 </label>
@@ -79,12 +79,12 @@ function Login () {
                 placeholder="Enter email or username ..."
                 onChange={(e) => setFormData(prev => ({ ...prev, identifier: e.target.value }))}
                 value={formData.identifier}
-                className="border rounded-4xl bg-white p-4 m-4"
+                className="border border-black rounded bg-white p-4 m-4"
                 />
 
                 <label 
                 htmlFor="passwordInput"
-                className="ml-4 font-bold"
+                className="ml-4 font-sans font-medium"
                 >
                     Password : 
                 </label>
@@ -96,12 +96,12 @@ function Login () {
                 placeholder="Enter your password ..."
                 onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                 value={formData.password}
-                className="border rounded-4xl bg-white p-4 m-4"
+                className="border border-black rounded bg-white p-4 m-4"
                 />
 
 
                 <button
-                className="border rounded-4xl p-4 m-4 cursor-pointer bg-green-400 disabled:cursor-not-allowed disabled:bg-green-300"
+                className="border text-white rounded-xl p-4 m-4 cursor-pointer bg-black disabled:cursor-not-allowed"
                 onClick={handleOnClick}
                 disabled={isFormComplete}
                 >

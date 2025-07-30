@@ -25,11 +25,13 @@ function App() {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <div className='flex justify-center items-center font-bold text-4xl'>Loading...</div>; // or a spinner component
+    return <div className='flex justify-center items-center font-bold text-4xl'>Loading...</div>; 
   }
 
   return (
-    <>
+    <div
+    className='bg-[url(/bg-image.jpg)] bg-no-repeat bg-cover bg-center min-h-screen bg-fixed'
+    >
       <Navbar />
       <Routes>
       <Route path="/" element={<Home />} />
@@ -77,7 +79,7 @@ function App() {
       </Routes>
       <Footer />
       <Toaster />
-    </>
+    </div>
   )
 }
 

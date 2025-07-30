@@ -7,7 +7,7 @@ export const verifyJWT = asyncHandler( async (req, res, next) => {
         const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "")
 
         if(!token) {
-            res
+            return res
             .status(401)
             .json(
                 { 
@@ -24,7 +24,7 @@ export const verifyJWT = asyncHandler( async (req, res, next) => {
         })
 
         if(!user) {
-            res
+            return res
             .status(401)
             .json(
                 { 
@@ -37,7 +37,7 @@ export const verifyJWT = asyncHandler( async (req, res, next) => {
         req.user = user;
         next();
     } catch (error) {
-        res
+        return res
         .status(401)
         .json(
             { 

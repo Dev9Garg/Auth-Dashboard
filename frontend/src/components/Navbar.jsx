@@ -23,12 +23,13 @@ function Navbar () {
     }
 
     return (
+        <div className="flex justify-center items-center">
         <div
-        className="bg-blue-400 border rounded-full p-4 m-4 flex justify-between sticky top-4"  
+        className="bg-black border rounded-full p-4 m-4 flex justify-between sticky top-4 min-w-4xl"  
         >
             <div>
                 <h1
-                className="font-bold"
+                className="font-medium text-white"
                 >
                     Auth-Dashboard
                 </h1>
@@ -38,7 +39,7 @@ function Navbar () {
             className="flex justify-evenly w-[10rem]"
             >
                 <button
-                className="font-bold"
+                className="font-medium text-white"
                 >
                     <Link to="/">Home</Link>
                 </button>
@@ -46,7 +47,7 @@ function Navbar () {
                 {user 
                 ? <div>
                     <button
-                    className="font-bold"
+                    className="font-medium text-white"
                     >
                         <Link to="/user/dashboard">Dashboard</Link>
                     </button>
@@ -57,7 +58,7 @@ function Navbar () {
             {user 
             ? <div>
                 <button
-                className="cursor-pointer font-bold"
+                className="cursor-pointer font-medium text-white"
                 onClick={handleLogout}
                 >
                     logout
@@ -65,17 +66,18 @@ function Navbar () {
             </div> 
             : <div className="flex justify-evenly w-[10rem]">
                 <button
-                className="font-bold"
+                className="font-medium text-white"
                 >
                     <Link to="/user/signup">Signup</Link>
                 </button>
 
                 <button
-                className="font-bold"
+                className="font-medium text-white"
                 >
                     <Link to="/user/login">Login</Link>
                 </button>
             </div>}
+        </div>
         </div>
     )
 }

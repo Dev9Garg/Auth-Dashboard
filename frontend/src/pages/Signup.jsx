@@ -151,7 +151,7 @@ function Signup () {
                 {/* heading */}
 
                 <h1
-                className="text-3xl font-medium text-center p-4 m-4"
+                className="text-3xl font-medium text-center p-2 m-4"
                 >
                     SignUp Form
 

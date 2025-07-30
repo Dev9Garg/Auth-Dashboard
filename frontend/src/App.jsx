@@ -13,6 +13,8 @@ import Home from "./pages/Home.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Signup from "./pages/Signup.jsx";
 import Login from './pages/Login.jsx';
+import AllUsers from './pages/AllUsers.jsx'
+import BlacklistedEmails from './pages/BlacklsitedEmails';
 
 import AdminDashboard from './pages/AdminDashboard';
 
@@ -71,6 +73,36 @@ function App() {
               <Navigate to="/user/dashboard" />
             ) : (
               <AdminDashboard />
+            )}
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path='/admin/dashboard/all-Users'
+        element={
+          <PrivateRoute>
+            {!user ? (
+              <Navigate to="/user/login" />
+            ) : !user.isAdmin ? (
+              <Navigate to="/user/dashboard" />
+            ) : (
+              <AllUsers />
+            )}
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path='/admin/dashboard/blacklisted-emails'
+        element={
+          <PrivateRoute>
+            {!user ? (
+              <Navigate to="/user/login" />
+            ) : !user.isAdmin ? (
+              <Navigate to="/user/dashboard" />
+            ) : (
+              <BlacklistedEmails />
             )}
           </PrivateRoute>
         }

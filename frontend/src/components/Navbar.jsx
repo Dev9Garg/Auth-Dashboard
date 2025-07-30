@@ -36,7 +36,7 @@ function Navbar () {
             </div>
 
             <div
-            className="flex justify-evenly w-[10rem]"
+            className="flex justify-evenly w-[30rem]"
             >
                 <button
                 className="font-medium text-white"
@@ -45,13 +45,34 @@ function Navbar () {
                 </button>
 
                 {user 
-                ? <div>
+                ? ((user.isAdmin)
+                ? <div className="flex space-x-4"> 
+                    <button
+                    className="font-medium text-white"
+                    >
+                        <Link to="/admin/dashboard">Dashboard</Link>
+                    </button>
+                
+                    <button
+                    className="font-medium text-white"
+                    >
+                        <Link to="/admin/dashboard/all-Users">All Users</Link>
+                    </button>
+                
+                    <button
+                    className="font-medium text-white"
+                    >
+                        <Link to="/admin/dashboard/blacklisted-emails">Blacklisted Emails</Link>
+                    </button>
+                </div> 
+                : <div>
                     <button
                     className="font-medium text-white"
                     >
                         <Link to="/user/dashboard">Dashboard</Link>
                     </button>
                 </div> 
+                )
                 : ""}
             </div>
 

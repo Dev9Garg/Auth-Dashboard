@@ -586,32 +586,64 @@ const updateDetails = asyncHandler( async (req, res) => {
     const{fullName, contactNumber} = req.body
 
     if(
-        [fullName, contactNumber].some((field) => field?.trim() === "") 
+        fullName.trim() === "" && !contactNumber
     ) {
         return res
         .status(400)
         .json(
             { 
                 success: false, 
-                message: "Please fill all the fields !!"
+                message: "Please fill atleast one field !!"
             }
         );
     }
 
-    const updateUser = await user.update({
-        fullName: fullName,
-        contactNumber: contactNumber
-    })
+    if(fullName.trim() === "") {
+        const updateUser = await user.update({
+            contactNumber: contactNumber
+        })
 
-    if(!updateUser) {
-        return res
-        .status(500)
-        .json(
-            { 
-                success: false, 
-                message: "Something went wrong while updating the user details !!"
-            }
-        );
+        if(!updateUser) {
+            return res
+            .status(500)
+            .json(
+                { 
+                    success: false, 
+                    message: "Something went wrong while updating the user details !!"
+                }
+            );
+        }
+    } else if(!contactNumber) {
+        const updateUser = await user.update({
+            fullName: fullName
+        })
+
+        if(!updateUser) {
+            return res
+            .status(500)
+            .json(
+                { 
+                    success: false, 
+                    message: "Something went wrong while updating the user details !!"
+                }
+            );
+        }
+    } else {
+        const updateUser = await user.update({
+            fullName: fullName,
+            contactNumber: contactNumber
+        })
+
+        if(!updateUser) {
+            return res
+            .status(500)
+            .json(
+                { 
+                    success: false, 
+                    message: "Something went wrong while updating the user details !!"
+                }
+            );
+        }
     }
 
     const updatedUser = await User.findOne({

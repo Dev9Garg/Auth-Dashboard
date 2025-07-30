@@ -3,10 +3,13 @@ import {Link} from "react-router-dom"
 import {authUrl} from "../config/config.js"
 import axios from "axios"
 import toast from "react-hot-toast";
+import { useState } from "react";
 
 function Navbar () {
 
     const {user, setUser} = useAuth();
+
+    const [selectedValue, setSelectedValue] = useState("");
 
     const handleLogout = () => {
         axios.post(`${authUrl}/users/logout`, {}, {
@@ -65,11 +68,17 @@ function Navbar () {
                         <Link to="/admin/dashboard/blacklisted-emails">Blacklisted Emails</Link>
                     </button>
                 </div> 
-                : <div>
+                : <div className="flex space-x-4">
                     <button
                     className="font-medium text-white"
                     >
                         <Link to="/user/dashboard">Dashboard</Link>
+                    </button>
+
+                    <button
+                    className="font-medium text-white"
+                    >
+                        <Link to="/user/update-details">Update Details</Link>
                     </button>
                 </div> 
                 )

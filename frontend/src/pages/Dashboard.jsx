@@ -41,7 +41,7 @@ function Dashboard () {
         className="flex justify-center m-44"
         >
             <div
-            className="flex flex-col items-center justify-center p-2 border-2 m-2 bg-linear-to-t from-sky-500 to-indigo-500"
+            className="flex flex-col items-center justify-center p-2 m-2"
             >
                 <div
                 className="p-4"

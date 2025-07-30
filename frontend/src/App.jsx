@@ -20,6 +20,7 @@ import AdminDashboard from './pages/AdminDashboard';
 
 // import from context
 import {useAuth} from "./context/AuthContext.jsx"
+import UpdateUserDetails from './pages/UpdateUserDetails';
 
 
 function App() {
@@ -46,6 +47,11 @@ function App() {
       <Route
         path="/user/signup"
         element={!user ? <Signup /> : (!user.isAdmin ? <Navigate to="/user/dashboard" /> : <Navigate to="/admin/dashboard" />)}
+      />
+
+      <Route
+        path="/user/update-details"
+        element={!user ? <Signup /> : (!user.isAdmin ? <UpdateUserDetails /> : <Navigate to="/admin/dashboard" />)}
       />
 
       <Route

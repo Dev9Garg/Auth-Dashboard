@@ -502,22 +502,55 @@ const updateUserDetails = asyncHandler( async (req, res) => {
         .json(
             { 
                 success: false, 
-                message: "You are not admin, so you can't update the details of the user !!"
+                message: "You are not admin, so you can't update the email of the user !!"
             }
         );
     }
 
-    const{fullName, username, contactNumber, email, userId} = req.body
+    const{ email, userId } = req.body
 
-    if(
-        [fullName, username, contactNumber, email].some((field) => field?.trim() === "") 
-    ) {
+    if(email?.trim() === "") {
         return res
         .status(400)
         .json(
             { 
                 success: false, 
-                message: "Please fill all the fields !!"
+                message: "Please enter the desired email you want to change to !!"
+            }
+        );
+    }
+
+    const result = emailValidation.safeParse(email);
+
+    if(!result.success) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "Please enter a valid email !!"
+            }
+        );
+    }
+
+    if(!userId) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "Please enter the userId whose email you want to change !!"
+            }
+        );
+    }
+
+    if(Number(userId) === Number(user.id)) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "Go to your profile page for updating your details, here you can only change the details of the other users !!"
             }
         );
     }
@@ -534,17 +567,31 @@ const updateUserDetails = asyncHandler( async (req, res) => {
         .json(
             { 
                 success: false, 
-                message: "No such user exist in the database whose details you are trying to update !!"
+                message: "No such user exist, whose email you are trying to update !!"
+            }
+        );
+    }
+
+    const sameEmailExisting = await User.findOne({
+        where: {
+            email: email
+        }
+    })
+
+    if(sameEmailExisting) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "This email already exists !!"
             }
         );
     }
 
     const userToBeUpdated = await existingUser.update(
         {
-            fullName: fullName,
-            username: username,
-            email: email,
-            contactNumber: contactNumber
+            email: email
         }
     )
 
@@ -554,7 +601,7 @@ const updateUserDetails = asyncHandler( async (req, res) => {
         .json(
             { 
                 success: false, 
-                message: "Something went wrong while updating the details of the user !!"
+                message: "Something went wrong while updating the email of the user !!"
             }
         );
     }
@@ -574,7 +621,7 @@ const updateUserDetails = asyncHandler( async (req, res) => {
         new ApiResponse(
             200,
             updatedUser,
-            "User details updated successfully !!"
+            "User email updated successfully !!"
         )
     )
 })

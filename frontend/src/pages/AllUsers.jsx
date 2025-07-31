@@ -13,6 +13,9 @@ export default function AllUsers() {
     const [deleteUserLoading, setDeleteUserLoading] = useState(false);
     const [removeAdminLoading, setRemoveAdminLoading] = useState(false);
     const [makeAdminLoading, setMakeAdminLoading] = useState(false);
+    const [editingUserId, setEditingUserId] = useState(null);
+    const [fieldValue, setFieldValue] = useState("");
+    const [updateEmailLoading, setUpdateEmailLoading] = useState(false);
 
     const allUsersProfile = () => {
         setAllUserLoading(true);
@@ -85,6 +88,26 @@ export default function AllUsers() {
         })
     }
 
+    const updateUserEmail = (userId) => {
+        setUpdateEmailLoading(true);
+
+        axios.patch(`${authUrl}/admin/updateUserDetails`, {email: fieldValue, userId}, {
+            withCredentials: true
+        })
+        .then((res) => {
+            allUsersProfile();
+            toast.success(res.data.message)
+            setUpdateEmailLoading(false);
+            setEditingUserId(null);
+        })
+        .catch((err) => {
+            console.log("Something went wrong while removing the user from the admin position : ", err)
+            toast.error(err.response.data.message)
+            setUpdateEmailLoading(false);
+            setEditingUserId(null);
+        })
+    }
+
     useEffect(() => {
         allUsersProfile();
     }, [])
@@ -110,7 +133,7 @@ export default function AllUsers() {
                                 <th className="p-2">Username</th>
                                 <th className="p-2">Email</th>
                                 <th className="p-2">Full Name</th>
-                                <th className="p-2">Contact</th>
+                                <th className="p-2">Contact Number</th>
                                 <th className="p-2">Admin</th>
                                 <th className="p-2"></th>
                                 <th className="p-2"></th>
@@ -120,7 +143,48 @@ export default function AllUsers() {
                                 {allUsers.map((user) => (
                                     <tr key={user.id} className="">
                                         <td className="p-2">{user.username}</td>
-                                        <td className="p-2">{user.email}</td>
+                                        
+                                        {(editingUserId === user.id)
+                                        ? <div className="flex mt-2">
+                                            <input 
+                                            type="text" 
+                                            value={fieldValue}
+                                            placeholder="Enter the new email ..."
+                                            className="bg-white rounded p-2"
+                                            onChange={(e) => setFieldValue(e.target.value)}
+                                            />
+
+                                            <button
+                                            className="cursor-pointer ml-2 rounded bg-green-500 p-2 disabled:bg-green-400 disabled:cursor-not-allowed" 
+                                            disabled={updateEmailLoading}
+                                            onClick={
+                                                () => updateUserEmail(user.id)}
+                                            >
+                                                save
+                                            </button>
+
+                                            <button
+                                            className="cursor-pointer ml-2 rounded bg-red-500 p-2 disabled:bg-red-400 disabled:cursor-not-allowed"
+                                            onClick={() => setEditingUserId(null)}
+                                            disabled={updateEmailLoading}
+                                            >
+                                                cancel
+                                            </button>
+                                        </div>
+                                        :<td className="p-2">{user.email}
+                                            <button
+                                            className="cursor-pointer rounded bg-green-500 p-2 m-2" 
+                                            onClick={
+                                                () => {setEditingUserId(user.id);
+                                                    setFieldValue(user.email);
+                                                }
+                                            }
+                                            >
+                                                edit
+                                            </button>
+                                        </td>
+                                        }
+                                        
                                         <td className="p-2">{user.fullName}</td>
                                         <td className="p-2">{user.contactNumber}</td>
                                         <td className="p-2">{user.isAdmin ? "Yes" : "No"}</td>

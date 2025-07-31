@@ -3,11 +3,8 @@ import axios from "axios"
 import toast from "react-hot-toast"
 import { authUrl } from "../config/config.js"
 import { useNavigate } from "react-router-dom"
-import { useAuth } from "@/context/AuthContext.jsx"
 
 export default function UpdateUserDetails() {
-
-    const {user} = useAuth();
 
     const navigate = useNavigate();
 

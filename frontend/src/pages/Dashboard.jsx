@@ -53,7 +53,9 @@ function Dashboard () {
 
                 <div>
                     {data.email === undefined && data.username === undefined
+
                     ? "was not able to fetch profile successfully !!" 
+
                     : <div>
                         <p
                         className="border rounded-2xl m-2 p-2 bg-violet-400"
@@ -120,6 +122,7 @@ function Dashboard () {
                         </p>
                     </div>
                     }
+                    
                 </div>
             </div>
         </div>

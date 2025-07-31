@@ -51,7 +51,9 @@ function AdminDashboard() {
 
                 <div>
                     {data.email === undefined && data.username === undefined
-                    ? "was not able to fetch profile successfully !!" 
+
+                    ? "was not able to fetch profile successfully !!"
+
                     : <div>
                         <p
                         className="border rounded-2xl m-2 p-2 bg-violet-400"
@@ -118,6 +120,7 @@ function AdminDashboard() {
                         </p>
                     </div>
                     }
+                    
                 </div>
             </div>
         </div>

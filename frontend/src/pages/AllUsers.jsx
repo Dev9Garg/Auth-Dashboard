@@ -13,7 +13,7 @@ export default function AllUsers() {
 
     const [allUsers, setAllUsers] = useState([]);
 
-    const[allUserLoading, setAllUserLoading] = useState(false);
+    const [allUserLoading, setAllUserLoading] = useState(false);
     const [deleteUserLoading, setDeleteUserLoading] = useState(false);
     const [removeAdminLoading, setRemoveAdminLoading] = useState(false);
     const [makeAdminLoading, setMakeAdminLoading] = useState(false);
@@ -149,9 +149,12 @@ export default function AllUsers() {
                                         <td className="p-2">{user.username}</td>
 
                                         {(currentUser.id === user.id)
-                                        ?<td className="p-2">{user.email}</td>
-                                        :<div>
+
+                                        ? <td className="p-2">{user.email}</td>
+
+                                        : <div>
                                             {(editingUserId === user.id)
+
                                             ? <div className="flex mt-2">
                                                 <input 
                                                 type="text" 
@@ -178,7 +181,8 @@ export default function AllUsers() {
                                                     cancel
                                                 </button>
                                             </div>
-                                            :<td className="p-2">{user.email}
+
+                                            : <td className="p-2">{user.email}
                                                 <button
                                                 className="cursor-pointer rounded bg-green-500 p-2 m-2" 
                                                 onClick={
@@ -191,6 +195,7 @@ export default function AllUsers() {
                                                 </button>
                                             </td>
                                             }
+
                                         </div>
                                         }
                                         
@@ -199,8 +204,10 @@ export default function AllUsers() {
                                         <td className="p-2">{user.isAdmin ? "Yes" : "No"}</td>
 
                                         {(currentUser.id === user.id)
-                                        ?<div></div>
-                                        :<div className="flex justify-evenly">
+
+                                        ? <div></div>
+
+                                        : <div className="flex justify-evenly">
                                             <td className="text-center p-2">
                                                 <button 
                                                 className="cursor-pointer rounded bg-red-500 p-2 disabled:bg-red-400 disabled:cursor-not-allowed" 
@@ -210,7 +217,9 @@ export default function AllUsers() {
                                                     delete
                                                 </button>
                                             </td>
+
                                             {user.isAdmin
+
                                             ? <td>
                                                 <button 
                                                 className="cursor-pointer mt-2 rounded bg-red-500 p-2 disabled:bg-red-400 disabled:cursor-not-allowed" 
@@ -220,6 +229,7 @@ export default function AllUsers() {
                                                     Admin <FontAwesomeIcon icon={faBan} size="sm" />
                                                 </button>
                                             </td>
+
                                             : <td>
                                                 <button 
                                                 className="cursor-pointer mt-2 rounded bg-green-500 p-2 disabled:bg-green-400 disabled:cursor-not-allowed" 
@@ -230,8 +240,10 @@ export default function AllUsers() {
                                                 </button>
                                             </td>
                                             }
+
                                         </div>
                                         }
+
                                     </tr>
                                 ))}
                             </tbody>

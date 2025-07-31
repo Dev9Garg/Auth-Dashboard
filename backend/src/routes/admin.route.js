@@ -1,10 +1,29 @@
 import {Router} from "express"
-import { adminProfile, allUsers, removeUser, updateUserDetails } from "../controllers/user.controller.js"
-import { addEmail, removeEmail, allBlacklistedEmails, allEmails } from "../controllers/blacklistEmail.controller.js";
+
+import { 
+    adminProfile, 
+    allUsers, 
+    makeAdmin, 
+    removeAdmin, 
+    removeUser, 
+    updateUserDetails 
+} from "../controllers/user.controller.js"
+
+import { 
+    addEmail, 
+    removeEmail, 
+    allBlacklistedEmails,
+    allEmails 
+} from "../controllers/blacklistEmail.controller.js";
+
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
+
+// router
 const router = Router();
 
+
+// routes
 router.route("/profile").get(
     verifyJWT,
     adminProfile
@@ -43,6 +62,16 @@ router.route("/removeUser").post(
 router.route("/updateUserDetails").patch(
     verifyJWT,
     updateUserDetails
+)
+
+router.route("/makeAdmin").post(
+    verifyJWT,
+    makeAdmin
+)
+
+router.route("/removeAdmin").post(
+    verifyJWT,
+    removeAdmin
 )
 
 

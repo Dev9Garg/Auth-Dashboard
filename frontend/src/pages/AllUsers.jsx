@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import {authUrl} from "../config/config.js"
 import axios from "axios"
 import toast from "react-hot-toast";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faBan, faChessKing } from "@fortawesome/fontawesome-free-solid";
 
 export default function AllUsers() {
 
@@ -9,6 +11,8 @@ export default function AllUsers() {
 
     const[allUserLoading, setAllUserLoading] = useState(false);
     const [deleteUserLoading, setDeleteUserLoading] = useState(false);
+    const [removeAdminLoading, setRemoveAdminLoading] = useState(false);
+    const [makeAdminLoading, setMakeAdminLoading] = useState(false);
 
     const allUsersProfile = () => {
         setAllUserLoading(true);
@@ -45,6 +49,42 @@ export default function AllUsers() {
         })
     }
 
+    const makeAdmin = (userId) => {
+        setMakeAdminLoading(true);
+
+        axios.post(`${authUrl}/admin/makeAdmin`, {userId}, {
+            withCredentials: true
+        })
+        .then((res) => {
+            allUsersProfile();
+            toast.success(res.data.message)
+            setMakeAdminLoading(false);
+        })
+        .catch((err) => {
+            console.log("Something went wrong while making the user admin : ", err)
+            toast.error(err.response.data.message)
+            setMakeAdminLoading(false);
+        })
+    }
+
+    const removeAdmin = (userId) => {
+        setRemoveAdminLoading(true);
+
+        axios.post(`${authUrl}/admin/removeAdmin`, {userId}, {
+            withCredentials: true
+        })
+        .then((res) => {
+            allUsersProfile();
+            toast.success(res.data.message)
+            setRemoveAdminLoading(false);
+        })
+        .catch((err) => {
+            console.log("Something went wrong while removing the user from the admin position : ", err)
+            toast.error(err.response.data.message)
+            setRemoveAdminLoading(false);
+        })
+    }
+
     useEffect(() => {
         allUsersProfile();
     }, [])
@@ -73,6 +113,7 @@ export default function AllUsers() {
                                 <th className="p-2">Contact</th>
                                 <th className="p-2">Admin</th>
                                 <th className="p-2"></th>
+                                <th className="p-2"></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -92,6 +133,26 @@ export default function AllUsers() {
                                                 delete
                                             </button>
                                         </td>
+                                        {user.isAdmin
+                                        ? <td>
+                                            <button 
+                                            className="cursor-pointer rounded bg-red-500 p-2 disabled:bg-red-400 disabled:cursor-not-allowed" 
+                                            onClick={() => removeAdmin(user.id)}
+                                            disabled={removeAdminLoading}
+                                            >
+                                                Admin <FontAwesomeIcon icon={faBan} size="sm" />
+                                            </button>
+                                        </td>
+                                        : <td>
+                                            <button 
+                                            className="cursor-pointer rounded bg-green-500 p-2 disabled:bg-green-400 disabled:cursor-not-allowed" 
+                                            onClick={() => makeAdmin(user.id)}
+                                            disabled={makeAdminLoading}
+                                            >
+                                                Admin <FontAwesomeIcon icon={faChessKing} size="sm" />
+                                            </button>
+                                        </td>
+                                        }
                                     </tr>
                                 ))}
                             </tbody>

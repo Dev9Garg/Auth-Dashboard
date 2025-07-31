@@ -666,6 +666,201 @@ const updateDetails = asyncHandler( async (req, res) => {
     )
 })
 
+// POST request for making someone admin (can be done by another admin only)
+const makeAdmin = asyncHandler( async (req, res) => {
+    const user = req.user;
+
+    if(!user.isAdmin) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "You are not admin, so you can't make someone admin !!"
+            }
+        );
+    }
+
+    const {userId} = req.body;
+
+    if(!userId) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "Please send the userId of the user to whom you want to make admin  !!"
+            }
+        );
+    }
+
+    if(userId === (user.id).toString()) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "You are already an admin !!"
+            }
+        );
+    }
+
+    const existingUser = await User.findOne({
+        where: {
+            id: userId
+        }
+    })
+
+    if(!existingUser) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "User with this Id does not exist, please enter a valid userId !!"
+            }
+        );
+    }
+
+    if(existingUser.isAdmin) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "User is already an admin !!"
+            }
+        );
+    }
+
+    const updatedUser = await existingUser.update({
+        isAdmin: true,
+    })
+
+    if(!updatedUser) {
+        return res
+        .status(500)
+        .json(
+            { 
+                success: false, 
+                message: "Something went wrong while making the user an admin !!"
+            }
+        );
+    }
+
+    return res
+    .status(200)
+    .json(
+        { 
+            success: true, 
+            message: "User became admin successully !!"
+        }
+    );
+})
+
+// POST request for removing someone from admin (can be done by another admin only)
+const removeAdmin = asyncHandler( async (req, res) => {
+    const user = req.user;
+
+    if(!user.isAdmin) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "You are not admin, so you can't remove someone from the admin position !!"
+            }
+        );
+    }
+
+    const {userId} = req.body;
+
+    if(!userId) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "Please send the userId of the user to whom you want to remove from the admin position !!"
+            }
+        );
+    }
+
+    const existingUser = await User.findOne({
+        where: {
+            id: userId
+        }
+    })
+
+    if(!existingUser) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "User with this Id does not exist, please enter a valid userId !!"
+            }
+        );
+    }
+    
+    if(Number(userId) === Number(user.id)) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "You cannot remove yourself from the admin position !!"
+            }
+        );
+    }
+    
+    if(Number(userId) === Number(1)) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "You can't remove this admin !!"
+            }
+        );
+    }
+
+    if(!existingUser.isAdmin) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "User is already not an admin !!"
+            }
+        );
+    }
+
+    const updatedUser = await existingUser.update({
+        isAdmin: false,
+    })
+
+    if(!updatedUser) {
+        return res
+        .status(500)
+        .json(
+            { 
+                success: false, 
+                message: "Something went wrong while removing the user from the admin position !!"
+            }
+        );
+    }
+
+    return res
+    .status(200)
+    .json(
+        { 
+            success: true, 
+            message: "User removed from the admin position successfully !!"
+        }
+    );
+})
+
 
 export {
     register,
@@ -676,5 +871,7 @@ export {
     removeUser,
     adminProfile,
     updateUserDetails,
-    updateDetails
+    updateDetails,
+    removeAdmin,
+    makeAdmin
 }

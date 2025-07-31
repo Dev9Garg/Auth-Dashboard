@@ -23,8 +23,6 @@ function Dashboard () {
                 contactNumber: res.data.data.contactNumber,
                 fullName: res.data.data.fullName
             })
-
-            toast.success(res.data.message);
         })
         .catch((err) => {
             console.log("Something went wrong while fetching the user profile : ", err)

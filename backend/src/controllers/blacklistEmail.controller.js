@@ -59,7 +59,8 @@ const addEmail = asyncHandler( async (req, res) => {
     }
 
     const createdEmail = await BlacklistEmails.create({
-        email: emailToBeBlacklisted
+        email: emailToBeBlacklisted,
+        blockedBy: user.fullName
     })
 
     if(!createdEmail) {

@@ -140,6 +140,12 @@ export default function BlacklistedEmails() {
                                             {email.email}
                                         </div>
 
+                                        <span
+                                        className="flex justify-center items-center"
+                                        >
+                                            Blocked by {email.blockedBy}
+                                        </span>
+
                                         <button 
                                         className="cursor-pointer rounded bg-red-500 m-2 p-2 disabled:bg-red-400 disabled:cursor-not-allowed" 
                                         onClick={() => deleteEmail(email.id)}

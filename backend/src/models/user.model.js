@@ -56,6 +56,11 @@ const BlacklistEmails = sequelize.define(
             type: DataTypes.STRING,
             unique: true,
             allowNull: false
+        },
+
+        blockedBy: {
+            type: DataTypes.STRING,
+            allowNull: false
         }
     },
 

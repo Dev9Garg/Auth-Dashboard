@@ -39,7 +39,7 @@ function Navbar () {
             </div>
 
             <div
-            className="flex justify-evenly w-[30rem]"
+            className="flex justify-evenly w-[40rem]"
             >
                 <button
                 className="font-medium text-white"
@@ -66,6 +66,12 @@ function Navbar () {
                     className="font-medium text-white"
                     >
                         <Link to="/admin/dashboard/blacklisted-emails">Blacklisted Emails</Link>
+                    </button>
+
+                    <button
+                    className="font-medium text-white"
+                    >
+                        <Link to="/user/update-details">Update Details</Link>
                     </button>
                 </div> 
                 : <div className="flex space-x-4">

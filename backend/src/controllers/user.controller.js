@@ -360,7 +360,11 @@ const allUsers = asyncHandler( async (req, res) => {
         );
     }
 
-    const allUser = await User.findAll();
+    const allUser = await User.findAll({
+        order: [
+            ['id', "ASC"]
+        ]
+    });
 
     // allUser is an array where User named object is there at every index equals to the number of the user
     // so loop on the allUser and access each element of it (User) and it has stored data in it in dataValues field

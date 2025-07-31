@@ -4,8 +4,12 @@ import axios from "axios"
 import toast from "react-hot-toast";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBan, faChessKing } from "@fortawesome/fontawesome-free-solid";
+import { useAuth } from "@/context/AuthContext.jsx";
 
 export default function AllUsers() {
+
+    const {user} = useAuth();
+    const currentUser = user;
 
     const [allUsers, setAllUsers] = useState([]);
 
@@ -141,81 +145,92 @@ export default function AllUsers() {
                             </thead>
                             <tbody>
                                 {allUsers.map((user) => (
-                                    <tr key={user.id} className="">
+                                    <tr key={user.id}>
                                         <td className="p-2">{user.username}</td>
-                                        
-                                        {(editingUserId === user.id)
-                                        ? <div className="flex mt-2">
-                                            <input 
-                                            type="text" 
-                                            value={fieldValue}
-                                            placeholder="Enter the new email ..."
-                                            className="bg-white rounded p-2"
-                                            onChange={(e) => setFieldValue(e.target.value)}
-                                            />
 
-                                            <button
-                                            className="cursor-pointer ml-2 rounded bg-green-500 p-2 disabled:bg-green-400 disabled:cursor-not-allowed" 
-                                            disabled={updateEmailLoading}
-                                            onClick={
-                                                () => updateUserEmail(user.id)}
-                                            >
-                                                save
-                                            </button>
+                                        {(currentUser.id === user.id)
+                                        ?<td className="p-2">{user.email}</td>
+                                        :<div>
+                                            {(editingUserId === user.id)
+                                            ? <div className="flex mt-2">
+                                                <input 
+                                                type="text" 
+                                                value={fieldValue}
+                                                placeholder="Enter the new email ..."
+                                                className="bg-white rounded p-2"
+                                                onChange={(e) => setFieldValue(e.target.value)}
+                                                />
 
-                                            <button
-                                            className="cursor-pointer ml-2 rounded bg-red-500 p-2 disabled:bg-red-400 disabled:cursor-not-allowed"
-                                            onClick={() => setEditingUserId(null)}
-                                            disabled={updateEmailLoading}
-                                            >
-                                                cancel
-                                            </button>
-                                        </div>
-                                        :<td className="p-2">{user.email}
-                                            <button
-                                            className="cursor-pointer rounded bg-green-500 p-2 m-2" 
-                                            onClick={
-                                                () => {setEditingUserId(user.id);
-                                                    setFieldValue(user.email);
+                                                <button
+                                                className="cursor-pointer ml-2 rounded bg-green-500 p-2 disabled:bg-green-400 disabled:cursor-not-allowed" 
+                                                disabled={updateEmailLoading}
+                                                onClick={
+                                                    () => updateUserEmail(user.id)}
+                                                >
+                                                    save
+                                                </button>
+
+                                                <button
+                                                className="cursor-pointer ml-2 rounded bg-red-500 p-2 disabled:bg-red-400 disabled:cursor-not-allowed"
+                                                onClick={() => setEditingUserId(null)}
+                                                disabled={updateEmailLoading}
+                                                >
+                                                    cancel
+                                                </button>
+                                            </div>
+                                            :<td className="p-2">{user.email}
+                                                <button
+                                                className="cursor-pointer rounded bg-green-500 p-2 m-2" 
+                                                onClick={
+                                                    () => {setEditingUserId(user.id);
+                                                        setFieldValue(user.email);
+                                                    }
                                                 }
+                                                >
+                                                    edit
+                                                </button>
+                                            </td>
                                             }
-                                            >
-                                                edit
-                                            </button>
-                                        </td>
+                                        </div>
                                         }
                                         
                                         <td className="p-2">{user.fullName}</td>
                                         <td className="p-2">{user.contactNumber}</td>
                                         <td className="p-2">{user.isAdmin ? "Yes" : "No"}</td>
-                                        <td className="text-center p-2">
-                                            <button 
-                                            className="cursor-pointer rounded bg-red-500 p-2 disabled:bg-red-400 disabled:cursor-not-allowed" 
-                                            onClick={() => deleteUser(user.id)}
-                                            disabled={deleteUserLoading}
-                                            >
-                                                delete
-                                            </button>
-                                        </td>
-                                        {user.isAdmin
-                                        ? <td>
-                                            <button 
-                                            className="cursor-pointer rounded bg-red-500 p-2 disabled:bg-red-400 disabled:cursor-not-allowed" 
-                                            onClick={() => removeAdmin(user.id)}
-                                            disabled={removeAdminLoading}
-                                            >
-                                                Admin <FontAwesomeIcon icon={faBan} size="sm" />
-                                            </button>
-                                        </td>
-                                        : <td>
-                                            <button 
-                                            className="cursor-pointer rounded bg-green-500 p-2 disabled:bg-green-400 disabled:cursor-not-allowed" 
-                                            onClick={() => makeAdmin(user.id)}
-                                            disabled={makeAdminLoading}
-                                            >
-                                                Admin <FontAwesomeIcon icon={faChessKing} size="sm" />
-                                            </button>
-                                        </td>
+
+                                        {(currentUser.id === user.id)
+                                        ?<div></div>
+                                        :<div className="flex justify-evenly">
+                                            <td className="text-center p-2">
+                                                <button 
+                                                className="cursor-pointer rounded bg-red-500 p-2 disabled:bg-red-400 disabled:cursor-not-allowed" 
+                                                onClick={() => deleteUser(user.id)}
+                                                disabled={deleteUserLoading}
+                                                >
+                                                    delete
+                                                </button>
+                                            </td>
+                                            {user.isAdmin
+                                            ? <td>
+                                                <button 
+                                                className="cursor-pointer mt-2 rounded bg-red-500 p-2 disabled:bg-red-400 disabled:cursor-not-allowed" 
+                                                onClick={() => removeAdmin(user.id)}
+                                                disabled={removeAdminLoading}
+                                                >
+                                                    Admin <FontAwesomeIcon icon={faBan} size="sm" />
+                                                </button>
+                                            </td>
+                                            : <td>
+                                                <button 
+                                                className="cursor-pointer mt-2 rounded bg-green-500 p-2 disabled:bg-green-400 disabled:cursor-not-allowed" 
+                                                onClick={() => makeAdmin(user.id)}
+                                                disabled={makeAdminLoading}
+                                                >
+                                                    Admin <FontAwesomeIcon icon={faChessKing} size="sm" />
+                                                </button>
+                                            </td>
+                                            }
+                                        </div>
                                         }
                                     </tr>
                                 ))}

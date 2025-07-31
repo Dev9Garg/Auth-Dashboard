@@ -51,7 +51,7 @@ function App() {
 
       <Route
         path="/user/update-details"
-        element={!user ? <Signup /> : (!user.isAdmin ? <UpdateUserDetails /> : <Navigate to="/admin/dashboard" />)}
+        element={!user ? <Signup /> : <UpdateUserDetails />}
       />
 
       <Route

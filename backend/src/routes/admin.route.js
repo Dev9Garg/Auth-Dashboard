@@ -2,8 +2,11 @@ import {Router} from "express"
 
 import { 
     adminProfile, 
+    allRequests, 
     allUsers, 
+    approveRequest, 
     makeAdmin, 
+    rejectRequest, 
     removeAdmin, 
     removeUser, 
     statusActive, 
@@ -78,6 +81,21 @@ router.route("/statusInactive").post(
 router.route("/statusActive").post(
     verifyJWT,
     statusActive
+)
+
+router.route("/allRequests").get(
+    verifyJWT,
+    allRequests
+)
+ 
+router.route("/approveRequest").post(
+    verifyJWT,
+    approveRequest
+)
+
+router.route("/rejectRequest").post(
+    verifyJWT,
+    rejectRequest
 )
 
 

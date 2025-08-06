@@ -1,5 +1,5 @@
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { User, BlacklistEmails } from "../models/user.model.js";
+import { User, BlacklistEmails, Request } from "../models/user.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { Op } from '@sequelize/core';
 import bcrypt from "bcrypt" 
@@ -834,11 +834,11 @@ const makeAdmin = asyncHandler( async (req, res) => {
     return res
     .status(200)
     .json(
-        { 
-            success: true, 
-            message: "User became admin successully !!"
-        }
-    );
+        new ApiResponse(
+            200,
+            "User became admin successully !!"
+        )
+    )
 })
 
 // POST request for removing someone from admin (can be done by another admin only)
@@ -937,13 +937,14 @@ const removeAdmin = asyncHandler( async (req, res) => {
     return res
     .status(200)
     .json(
-        { 
-            success: true, 
-            message: "User removed from the admin position successfully !!"
-        }
-    );
+        new ApiResponse(
+            200,
+            "User removed from the admin position successfully !!"
+        )
+    )
 })
 
+// POST request for making the status inactive of a user
 const statusInactive = asyncHandler(async (req, res) => {
     const user = req.user;
 
@@ -1040,15 +1041,16 @@ const statusInactive = asyncHandler(async (req, res) => {
     const isoDate = new Date(inactiveUntil);
 
     return res
-        .status(200)
-        .json(
-            { 
-                success: true, 
-                message: `successfully changed the status of the user as inactive till : ${isoDate} !!`
-            }
-        );
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            `successfully changed the status of the user as inactive till : ${isoDate} !!`
+        )
+    )
 })
 
+// POST request for making the status active of a user
 const statusActive = asyncHandler(async (req, res) => {
     const user = req.user;
 
@@ -1121,13 +1123,356 @@ const statusActive = asyncHandler(async (req, res) => {
     }
 
     return res
-        .status(200)
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            `successfully changed the status of the user as active !!`
+        )
+    )
+})
+
+// POST request for checking the details sent by the user in request for updating the email
+const checkRequestDetails = asyncHandler(async (req, res) => {
+    const user = req.user;
+
+    if(user.isAdmin) {
+        return res
+        .status(400)
         .json(
             { 
-                success: true, 
-                message: `successfully changed the status of the user as active !!`
+                success: false, 
+                message: "You are admin you can directly change your email, no need to make request !!"
             }
         );
+    }
+
+    const {desiredEmail, password, userId} = req.body
+
+    if(
+        [desiredEmail, password].some((field) => field.trim() === "") || !userId
+    ) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "Pls fill all the required details before making a request !!"
+            }
+        );
+    }
+
+    if(Number(userId) !== Number(user.id)) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "Incorrect userId sent (as the user id sent with the request and the user id that the logged in user has are not same) !!"
+            }
+        );
+    }
+
+    const checkUser = await User.findOne({
+        where: {
+            id: userId
+        }
+    })
+
+    if(!checkUser) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "No such user exists with this user id, so you can't make any request !!"
+            }
+        );
+    }
+
+    const alreadyRequestMade = await Request.findAll({
+        where: {
+            requestedById: user.id
+        }
+    })
+
+    if(alreadyRequestMade.length !== 0) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "You cannot make more than one request for email change !!"
+            }
+        );
+    }
+
+    const checkPassword = await bcrypt.compare(password, checkUser.password)
+
+    if(!checkPassword) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "Password is wrong !"
+            }
+        );
+    }
+
+    if (!(emailValidation.safeParse(desiredEmail)).success) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "Enter a valid email !!"
+            }
+        );
+    }
+
+    const existingEmail = await User.findAll({
+        where: {
+            email: desiredEmail
+        }
+    })
+
+    if(existingEmail.length !== 0) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "The email entered is already taken, pls try any other email !!"
+            }
+        );
+    }
+
+    const existingRequestedEmail = await Request.findAll({
+        where: {
+            email: desiredEmail
+        }
+    })
+
+    if(existingRequestedEmail.length !== 0) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "This email is already requested by someone else !!"
+            }
+        );
+    }
+
+    try {
+        const createRequest = await Request.create({
+            email: desiredEmail,
+            requestedByName: user.fullName,
+            requestedById: user.id
+        })
+    
+        if(!createRequest) {
+            return res
+            .status(400)
+            .json(
+                { 
+                    success: false, 
+                    message: "Something went wrong while creating the request !!"
+                }
+            );
+        }
+    
+        return res
+        .status(200)
+        .json(
+            new ApiResponse(
+                200,
+                createRequest,
+                "Successfully created the request, pls wait until it gets approved by the admin !!"
+            )
+        )
+    } catch (err) {
+        console.error("Request creation error :");
+        console.error("Message:", err.message);
+
+        if (err.original) {
+            console.error("Original PG error:", err.original.detail || err.original.message);
+        }
+
+        return res
+        .status(500)
+        .json(
+            { 
+                success: false, 
+                message: err.message 
+            }
+        );
+    }
+})
+
+// GET request for fetching all the request for the admin 
+const allRequests = asyncHandler(async (req, res) => {
+    const user = req.user
+
+    if(!user.isAdmin) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "You are not admin, so you can't see all the requests !!"
+            }
+        );
+    }
+
+    const allFetchedRequests = await Request.findAll({
+        order: [
+            ['id', "ASC"]
+        ]
+    })
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            allFetchedRequests,
+            "all requests fetched successfully !!"
+        )
+    )
+})
+
+// POST request for approving the request made by the user for email updation
+const approveRequest = asyncHandler(async (req, res) => {
+    const user = req.user
+
+    if(!user.isAdmin) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "You are not admin so you cannot approve anyone's request !!"
+            }
+        );
+    }
+
+    const {desiredEmail, userId} = req.body
+
+    const existingEmail = await User.findAll({
+        where: {
+            email: desiredEmail
+        }
+    })
+
+    if(existingEmail.length !== 0) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "This email is already taken, pls reject this request and notify the user regarding the same !!"
+            }
+        );
+    }
+
+    const updatedUser = await User.update(
+        {
+            email: desiredEmail 
+        },
+        {
+            where: {
+                id: userId
+            },
+        },
+    )
+
+    if(!updatedUser) {
+        return res
+        .status(500)
+        .json(
+            { 
+                success: false, 
+                message: "Something went wrong while updating the user email !!"
+            }
+        );
+    }
+
+    await Request.destroy({
+        where: {
+            email: desiredEmail
+        }
+    })
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            "User email updated successfully  !!"
+        )
+    )
+})
+
+const rejectRequest = asyncHandler(async (req, res) => {
+    const user = req.user;
+
+    if(!user.isAdmin) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "You are not admin so you cannot reject anyone's request !!"
+            }
+        );
+    }
+
+    const {desiredEmail} = req.body
+
+    const checkEmail = await Request.findAll({
+        where: {
+            email: desiredEmail
+        }
+    })
+
+    if(checkEmail.length === 0) {
+        return res
+        .status(500)
+        .json(
+            { 
+                success: false, 
+                message: "no such email exists in the request table, so it can't be deleted !!"
+            }
+        );
+    }
+
+    const deletedRequest = await Request.destroy({
+        where: {
+            email: desiredEmail
+        }
+    })
+
+    if(!deletedRequest) {
+        return res
+        .status(500)
+        .json(
+            { 
+                success: false, 
+                message: "Something went wrong while rejecting the request !!"
+            }
+        );
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            "Request rejected successfully  !!"
+        )
+    )
 })
 
 export {
@@ -1143,5 +1488,9 @@ export {
     removeAdmin,
     makeAdmin,
     statusInactive,
-    statusActive
+    statusActive,
+    checkRequestDetails,
+    allRequests,
+    approveRequest,
+    rejectRequest
 }

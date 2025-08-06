@@ -1,6 +1,16 @@
 import {Router} from "express"
-import { login, logout, register, userProfile, updateDetails } from "../controllers/user.controller.js"
+
+import { 
+    login, 
+    logout, 
+    register, 
+    userProfile, 
+    updateDetails, 
+    checkRequestDetails 
+} from "../controllers/user.controller.js"
+
 import { verifyJWT } from "../middlewares/auth.middleware.js";
+
 
 const router = Router();
 
@@ -21,6 +31,11 @@ router.route("/profile").get(
 router.route("/updateDetails").patch(
     verifyJWT,
     updateDetails
+)
+
+router.route("/request/checkDetails").post(
+    verifyJWT,
+    checkRequestDetails
 )
 
 export default router

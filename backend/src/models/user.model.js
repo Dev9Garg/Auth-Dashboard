@@ -85,6 +85,32 @@ const BlacklistEmails = sequelize.define(
     }
 )
 
+const Request = sequelize.define(
+    'Request',
+
+    {
+        email: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            unique: false
+        },
+
+        requestedByName: {
+            type: DataTypes.STRING,
+            allowNull: false
+        },
+
+        requestedById: {
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
+    },
+
+    {
+        timestamps: true
+    }
+)
+
 
 User.prototype.generateAccessToken = function () {
     return jwt.sign(
@@ -120,4 +146,4 @@ const modelSync = async () => {
     console.log("models synchronized successfully !");
 }
 
-export {modelSync, User, BlacklistEmails};
+export {modelSync, User, BlacklistEmails, Request};

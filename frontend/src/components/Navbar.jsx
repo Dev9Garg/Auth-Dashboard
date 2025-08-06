@@ -73,6 +73,12 @@ function Navbar () {
                     >
                         <Link to="/user/update-details">Update Details</Link>
                     </button>
+
+                    <button
+                    className="font-medium text-white"
+                    >
+                        <Link to="/admin/dashboard/all-requests">Inbox</Link>
+                    </button>
                 </div> 
                 : <div className="flex space-x-4">
                     <button
@@ -85,6 +91,12 @@ function Navbar () {
                     className="font-medium text-white"
                     >
                         <Link to="/user/update-details">Update Details</Link>
+                    </button>
+
+                    <button
+                    className="font-medium text-white"
+                    >
+                        <Link to="/user/send-request">Send a request</Link>
                     </button>
                 </div> 
                 )

@@ -418,7 +418,7 @@ export default function AllUsers() {
                                                         Cancel
                                                     </button>
                                                     <button
-                                                        className="px-4 py-2 bg-red-500 text-white rounded"
+                                                        className="px-4 py-2 bg-red-500 text-white rounded disabled:bg-red-400 disabled:cursor-not-allowed"
                                                         onClick={makeUserStatusInactive}
                                                         disabled={makingUserInactiveLoading}
                                                     >

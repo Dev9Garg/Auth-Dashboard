@@ -15,6 +15,8 @@ import Signup from "./pages/Signup.jsx";
 import Login from './pages/Login.jsx';
 import AllUsers from './pages/AllUsers.jsx'
 import BlacklistedEmails from './pages/BlacklsitedEmails';
+import UserRequest from './pages/UserRequest';
+import AdminRequest from './pages/AdminRequest';
 
 import AdminDashboard from './pages/AdminDashboard';
 
@@ -52,6 +54,11 @@ function App() {
       <Route
         path="/user/update-details"
         element={!user ? <Signup /> : <UpdateUserDetails />}
+      />
+
+      <Route
+        path="/user/send-request"
+        element={!user ? <Signup /> : (!user.isAdmin ? <UserRequest /> : <Navigate to="/admin/dashboard" />)}
       />
 
       <Route
@@ -109,6 +116,21 @@ function App() {
               <Navigate to="/user/dashboard" />
             ) : (
               <BlacklistedEmails />
+            )}
+          </PrivateRoute>
+        }
+      />
+
+      <Route
+        path='/admin/dashboard/all-requests'
+        element={
+          <PrivateRoute>
+            {!user ? (
+              <Navigate to="/user/login" />
+            ) : !user.isAdmin ? (
+              <Navigate to="/user/dashboard" />
+            ) : (
+              <AdminRequest />
             )}
           </PrivateRoute>
         }

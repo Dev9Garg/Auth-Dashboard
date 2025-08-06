@@ -12,7 +12,6 @@ import {
 import { 
     addEmail, 
     removeEmail, 
-    allBlacklistedEmails,
     allEmails 
 } from "../controllers/blacklistEmail.controller.js";
 
@@ -37,11 +36,6 @@ router.route("/allUsers").get(
 router.route("/allEmails").get(
     verifyJWT,
     allEmails
-)
-
-router.route("/allBlacklistedEmails").get(
-    verifyJWT,
-    allBlacklistedEmails
 )
 
 router.route("/addEmail").post(

@@ -3,8 +3,11 @@ import {authUrl} from "../config/config.js"
 import axios from "axios"
 import toast from "react-hot-toast";
 import { emailValidation } from "@/schema/signUpSchema.js";
+import { useAuth } from "@/context/AuthContext.jsx";
 
 export default function BlacklistedEmails() {
+
+    const {user} = useAuth();
 
     const [blacklistedEmails, setBlacklistedEmails] = useState([]);
     const [emailToBeBlacklisted, setEmailToBeBlacklisted] = useState("");
@@ -146,13 +149,17 @@ export default function BlacklistedEmails() {
                                             Blocked by {email.blockedBy}
                                         </span>
 
-                                        <button 
-                                        className="cursor-pointer rounded bg-red-500 m-2 p-2 disabled:bg-red-400 disabled:cursor-not-allowed" 
-                                        onClick={() => deleteEmail(email.id)}
-                                        disabled={deleteEmailloading}
-                                        >
-                                            {deleteEmailloading ? "Deleting ..." : "Delete"}
+
+                                        {Number(user.id) === Number(1)
+                                        ? <button 
+                                            className="cursor-pointer rounded bg-red-500 m-2 p-2 disabled:bg-red-400 disabled:cursor-not-allowed" 
+                                            onClick={() => deleteEmail(email.id)}
+                                            disabled={deleteEmailloading}
+                                            >
+                                                {deleteEmailloading ? "Deleting ..." : "Delete"}
                                         </button>
+                                        : <div></div>
+                                        }
                                     </div>
                                 ))}
                             </div>

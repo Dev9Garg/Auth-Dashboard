@@ -28,6 +28,11 @@ const User = sequelize.define(
             allowNull: false
         },
 
+        isBlacklisted: {
+            type: DataTypes.BOOLEAN,
+            defaultValue: false
+        },
+
         password: {
             type: DataTypes.STRING,
             allowNull: false

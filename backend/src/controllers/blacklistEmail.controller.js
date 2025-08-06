@@ -1,5 +1,5 @@
 import { ApiResponse } from "../utils/ApiResponse.js";
-import { BlacklistEmails } from "../models/user.model.js";
+import { BlacklistEmails, User } from "../models/user.model.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 // POST request for adding the email 
@@ -58,6 +58,23 @@ const addEmail = asyncHandler( async (req, res) => {
         );
     }
 
+    const emailToBeBlacklistedIsAnAdmin = await User.findOne({
+        where: {
+            email: emailToBeBlacklisted
+        }
+    })
+
+    if(emailToBeBlacklistedIsAnAdmin.isAdmin) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "You cannot blacklist the email of an admin !!"
+            }
+        );
+    }
+
     const createdEmail = await BlacklistEmails.create({
         email: emailToBeBlacklisted,
         blockedBy: user.fullName
@@ -72,6 +89,18 @@ const addEmail = asyncHandler( async (req, res) => {
                 message: "Something went wrong while adding the email !!"
             }
         );
+    }
+
+    const existingUser = await User.findOne({
+        where: {
+            email: emailToBeBlacklisted
+        }
+    })
+
+    if(existingUser) {
+        await existingUser.update({
+            isBlacklisted: true
+        })
     }
 
     return res
@@ -89,62 +118,139 @@ const addEmail = asyncHandler( async (req, res) => {
 const removeEmail = asyncHandler( async (req, res) => {
     const user = req.user
 
-    if(!user.isAdmin) {
+    if(user.id !== 1) {
         return res
         .status(401)
         .json(
             { 
                 success: false, 
-                message: "You are not admin, so you can't delete the blacklisted emails !!"
+                message: "You are not sole admin, so you can't delete the blacklisted emails !!"
             }
         );
     }
 
-    const {emailId} = req.body
+    const {email, emailId} = req.body
 
-    if(!emailId) {
+    if(
+        !emailId && (!email || email.trim() === "")
+    ) {
         return res
         .status(400)
         .json(
             { 
                 success: false, 
-                message: "Please provide id of the email which is to be deleted !!"
+                message: "Please fill atleast one field !!"
             }
         );
     }
 
-    const notExistingId = await BlacklistEmails.findAll({
-        where: {
-            id: emailId
-        }
-    })
 
-    if(notExistingId.length === 0) {
-        return res
-        .status(400)
-        .json(
-            { 
-                success: false, 
-                message: "Such email id does not exist, so it can't be deleted"
+    if(email === undefined) {
+        const notExistingId = await BlacklistEmails.findOne({
+            where: {
+                id: emailId
             }
-        );
-    }
+        })
 
-    const deletedId = await BlacklistEmails.destroy({
-        where: {
-            id: emailId
+        if(!notExistingId) {
+            return res
+            .status(400)
+            .json(
+                { 
+                    success: false, 
+                    message: "Such email id does not exist, so it can't be deleted"
+                }
+            );
         }
-    })
 
-    if(!deletedId) {
-        return res
-        .status(500)
-        .json(
-            { 
-                success: false, 
-                message: "Something went wrong while deleting the requested Id !!"
+        const checkEmail = await User.findOne({
+            where: {
+                email: notExistingId.email
             }
-        );
+        })
+
+        if(checkEmail) {
+            const updateUserBlacklistEmail = await checkEmail.update({
+                isBlacklisted: false
+            })
+
+            if(!updateUserBlacklistEmail) {
+                return res
+                .status(500)
+                .json(
+                    { 
+                        success: false, 
+                        message: "Something went wrong while updating the isBlacklist column of the user to false !!"
+                    }
+                );
+            }
+        } else {
+            console.log("this email is not signed in !!")
+        }
+
+        const deletedId = await BlacklistEmails.destroy({
+            where: {
+                id: emailId
+            }
+        })
+
+        if(!deletedId) {
+            return res
+            .status(500)
+            .json(
+                { 
+                    success: false, 
+                    message: "Something went wrong while deleting the requested Id !!"
+                }
+            );
+        }
+
+    } else if(!emailId) {
+        const notExistingEmail = await BlacklistEmails.findAll({
+            where: {
+                email: email
+            }
+        })
+
+        if(notExistingEmail.length === 0) {
+            return res
+            .status(400)
+            .json(
+                { 
+                    success: false, 
+                    message: "Such email does not exist, so it can't be deleted"
+                }
+            );
+        }
+
+        const deletedEmail = await BlacklistEmails.destroy({
+            where: {
+                email: email
+            }
+        })
+
+        if(!deletedEmail) {
+            return res
+            .status(500)
+            .json(
+                { 
+                    success: false, 
+                    message: "Something went wrong while deleting the requested email !!"
+                }
+            );
+        }
+
+        const existingUser = await User.findOne({
+            where: {
+                email: email
+            }
+        })
+
+        if(existingUser) {
+            await existingUser.update({
+                isBlacklisted: false
+            })
+        }
     }
 
     return res
@@ -158,33 +264,6 @@ const removeEmail = asyncHandler( async (req, res) => {
 })
 
 // GET request for fetching all the blacklisted emails in the database
-const allBlacklistedEmails = asyncHandler( async (req, res) => {
-    const user = req.user;
-
-    if(!user.isAdmin) {
-        return res
-        .status(401)
-        .json(
-            { 
-                success: false, 
-                message: "You are not admin, so you can't see the blacklisted emails !!"
-            }
-        );
-    }
-
-    const blacklistedEmails = await BlacklistEmails.findAll()
-
-    return res
-    .status(200)
-    .json(
-        new ApiResponse(
-            200,
-            blacklistedEmails,
-            "successfully fetched all the blacklisted emails !!"
-        )
-    )
-})
-
 const allEmails = asyncHandler( async (req, res) => {
     const user = req.user;
 
@@ -215,6 +294,5 @@ const allEmails = asyncHandler( async (req, res) => {
 export {
     addEmail,
     removeEmail,
-    allBlacklistedEmails,
     allEmails
 }

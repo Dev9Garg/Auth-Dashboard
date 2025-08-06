@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBan, faChessKing } from "@fortawesome/fontawesome-free-solid";
 import { useAuth } from "@/context/AuthContext.jsx";
+import { emailValidation } from "@/schema/signUpSchema.js";
 
 export default function AllUsers() {
 
@@ -20,6 +21,8 @@ export default function AllUsers() {
     const [editingUserId, setEditingUserId] = useState(null);
     const [fieldValue, setFieldValue] = useState("");
     const [updateEmailLoading, setUpdateEmailLoading] = useState(false);
+    const [blacklistEmailLoading, setBlacklistEmailLoading] = useState(false);
+    const [deblacklistEmailLoading, setDeBlacklistEmailLoading] = useState(false);
 
     const allUsersProfile = () => {
         setAllUserLoading(true);
@@ -109,6 +112,50 @@ export default function AllUsers() {
             toast.error(err.response.data.message)
             setUpdateEmailLoading(false);
             setEditingUserId(null);
+        })
+    }
+
+    const blacklistEmail = (userEmail) => {
+        setBlacklistEmailLoading(true);
+
+        const result = emailValidation.safeParse(userEmail)
+
+        if(!result.success) {
+            toast.error("Enter a valid email !!");
+            setBlacklistEmailLoading(false);
+            return;
+        }
+
+        axios.post(`${authUrl}/admin/addEmail`, {emailToBeBlacklisted: userEmail}, {
+            withCredentials: true
+        })
+        .then(() => {
+            toast.success("Email added successfully !!")
+            setBlacklistEmailLoading(false);
+            allUsersProfile();
+        })
+        .catch((err) => {
+            console.log("Something went wrong while adding the email : ", err)
+            toast.error(err.response.data.message)
+            setBlacklistEmailLoading(false);
+        })
+    }
+
+    const deblacklistEmail = (userEmail) => {
+        setDeBlacklistEmailLoading(true);
+
+        axios.post(`${authUrl}/admin/removeEmail`, {email: userEmail}, {
+            withCredentials: true
+        })
+        .then(() => {
+            toast.success("email de-blacklisted successfully !!")
+            setDeBlacklistEmailLoading(false);
+            allUsersProfile();
+        })
+        .catch((err) => {
+            console.log("Something went wrong while de-blacklisting the email : ", err)
+            toast.error(err.response.data.message)
+            setDeBlacklistEmailLoading(false);
         })
     }
 
@@ -237,6 +284,27 @@ export default function AllUsers() {
                                                 disabled={makeAdminLoading}
                                                 >
                                                     Admin <FontAwesomeIcon icon={faChessKing} size="sm" />
+                                                </button>
+                                            </td>
+                                            }
+
+                                            {user.isBlacklisted
+                                            ? <td>
+                                                <button 
+                                                className="cursor-pointer mt-2 rounded bg-green-500 p-2 disabled:bg-green-400 disabled:cursor-not-allowed" 
+                                                onClick={() => deblacklistEmail(user.email)}
+                                                disabled={deblacklistEmailLoading}
+                                                >
+                                                    De-Blacklist
+                                                </button>
+                                            </td>
+                                            : <td>
+                                                <button 
+                                                className="cursor-pointer mt-2 rounded bg-red-500 p-2 disabled:bg-red-400 disabled:cursor-not-allowed" 
+                                                onClick={() => blacklistEmail(user.email)}
+                                                disabled={blacklistEmailLoading}
+                                                >
+                                                    Blacklist
                                                 </button>
                                             </td>
                                             }

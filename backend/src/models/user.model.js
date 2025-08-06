@@ -33,6 +33,17 @@ const User = sequelize.define(
             defaultValue: false
         },
 
+        status: {
+            type: DataTypes.STRING,
+            defaultValue: "active",
+            allowNull: false
+        },
+
+        isInactiveUntil: {
+            type: DataTypes.DATE,
+            allowNull: true
+        },
+
         password: {
             type: DataTypes.STRING,
             allowNull: false

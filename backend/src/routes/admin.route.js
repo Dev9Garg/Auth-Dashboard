@@ -6,6 +6,8 @@ import {
     makeAdmin, 
     removeAdmin, 
     removeUser, 
+    statusActive, 
+    statusInactive, 
     updateUserDetails 
 } from "../controllers/user.controller.js"
 
@@ -66,6 +68,16 @@ router.route("/makeAdmin").post(
 router.route("/removeAdmin").post(
     verifyJWT,
     removeAdmin
+)
+
+router.route("/statusInactive").post(
+    verifyJWT,
+    statusInactive
+)
+
+router.route("/statusActive").post(
+    verifyJWT,
+    statusActive
 )
 
 

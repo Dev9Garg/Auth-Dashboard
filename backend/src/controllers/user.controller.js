@@ -257,6 +257,38 @@ const login = asyncHandler( async (req, res) => {
         );
     }
 
+    if(checkUser.status === "inactive") {
+        if(Date.now() < checkUser.isInactiveUntil) {
+
+            const isoDate = new Date(checkUser.isInactiveUntil)
+
+            return res
+            .status(400)
+            .json(
+                { 
+                    success: false, 
+                    message: `You cannot login because your status has been set to inactive till ${isoDate} !`
+                }
+            );
+        } else {
+            const updateUserStatus = await checkUser.update({
+                status: "active",
+                isInactiveUntil: null
+            })
+
+            if(!updateUserStatus) {
+                return res
+                .status(400)
+                .json(
+                    { 
+                        success: false, 
+                        message: "Something went wrong while logging you in !"
+                    }
+                );
+            }
+        }
+    }
+
     const checkPassword = await bcrypt.compare(password, checkUser.password)
 
     if(!checkPassword) {
@@ -912,6 +944,191 @@ const removeAdmin = asyncHandler( async (req, res) => {
     );
 })
 
+const statusInactive = asyncHandler(async (req, res) => {
+    const user = req.user;
+
+    if(!user.isAdmin) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "You are not admin, so you can't change someone else's status !!"
+            }
+        );
+    } 
+
+    const {userId, inactiveUntil} = req.body;
+
+    if(!userId) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "Please send the userId of the user to whom you want to make inactive !!"
+            }
+        );
+    }
+
+    if(!inactiveUntil) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "Please send the time also until which you want to make the user inactive !!"
+            }
+        );
+    }
+
+    const checkUser = await User.findOne({
+        where: {
+            id: userId
+        }
+    })
+
+    if(!checkUser) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "No such user exists in the database whose status you want to change !!"
+            }
+        );
+    }
+
+    if(checkUser.isAdmin) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "you cannot make a admin inactive !!"
+            }
+        );
+    }
+
+    if(checkUser.status === "inactive") {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "User status is already set to inactive !!"
+            }
+        );
+    }
+
+    const updatedUser = await checkUser.update({
+        status: "inactive",
+        isInactiveUntil: inactiveUntil
+    })
+
+    if(!updatedUser) {
+        return res
+        .status(500)
+        .json(
+            { 
+                success: false, 
+                message: "Something went wrong while updating the status of the user !!"
+            }
+        );
+    }
+
+    const isoDate = new Date(inactiveUntil);
+
+    return res
+        .status(200)
+        .json(
+            { 
+                success: true, 
+                message: `successfully changed the status of the user as inactive till : ${isoDate} !!`
+            }
+        );
+})
+
+const statusActive = asyncHandler(async (req, res) => {
+    const user = req.user;
+
+    if(!user.isAdmin) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "You are not admin, so you can't change someone else's status !!"
+            }
+        );
+    } 
+
+    const {userId} = req.body;
+
+    if(!userId) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "Please send the userId of the user to whom you want to make inactive !!"
+            }
+        );
+    }
+
+    const checkUser = await User.findOne({
+        where: {
+            id: userId
+        }
+    })
+
+    if(!checkUser) {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "No such user exists in the database whose status you want to change !!"
+            }
+        );
+    }
+
+    if(checkUser.status === "active") {
+        return res
+        .status(400)
+        .json(
+            { 
+                success: false, 
+                message: "User status is already set to active !!"
+            }
+        );
+    }
+
+    const updatedUser = await checkUser.update({
+        status: "active",
+        isInactiveUntil: null
+    })
+
+    if(!updatedUser) {
+        return res
+        .status(500)
+        .json(
+            { 
+                success: false, 
+                message: "Something went wrong while updating the status of the user !!"
+            }
+        );
+    }
+
+    return res
+        .status(200)
+        .json(
+            { 
+                success: true, 
+                message: `successfully changed the status of the user as active !!`
+            }
+        );
+})
 
 export {
     register,
@@ -924,5 +1141,7 @@ export {
     updateUserDetails,
     updateDetails,
     removeAdmin,
-    makeAdmin
+    makeAdmin,
+    statusInactive,
+    statusActive
 }

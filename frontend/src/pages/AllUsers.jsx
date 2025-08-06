@@ -23,7 +23,13 @@ export default function AllUsers() {
     const [updateEmailLoading, setUpdateEmailLoading] = useState(false);
     const [blacklistEmailLoading, setBlacklistEmailLoading] = useState(false);
     const [deblacklistEmailLoading, setDeBlacklistEmailLoading] = useState(false);
+    const [makingUserActiveLoading, setMakingUserActiveLoading] = useState(false);
+    const [makingUserInactiveLoading, setMakingUserInactiveLoading] = useState(false);
+    const [showInactiveModal, setShowInactiveModal] = useState(false);
+    const [inactiveUntil, setInactiveUntil] = useState("");
+    const [selectedUserId, setSelectedUserId] = useState(null);
 
+    // admin profile fetching api
     const allUsersProfile = () => {
         setAllUserLoading(true);
 
@@ -41,6 +47,7 @@ export default function AllUsers() {
         })
     }
 
+    // user deletion api
     const deleteUser = (userId) => {
         setDeleteUserLoading(true);
 
@@ -59,6 +66,7 @@ export default function AllUsers() {
         })
     }
 
+    // admin toggle api's
     const makeAdmin = (userId) => {
         setMakeAdminLoading(true);
 
@@ -95,6 +103,7 @@ export default function AllUsers() {
         })
     }
 
+    // update user email api
     const updateUserEmail = (userId) => {
         setUpdateEmailLoading(true);
 
@@ -115,6 +124,7 @@ export default function AllUsers() {
         })
     }
 
+    // blacklist email api's 
     const blacklistEmail = (userEmail) => {
         setBlacklistEmailLoading(true);
 
@@ -159,6 +169,58 @@ export default function AllUsers() {
         })
     }
 
+    // user status api's
+    const makeUserStatusActive = (userId) => {
+        setMakingUserActiveLoading(true);
+
+        axios.post(`${authUrl}/admin/statusActive`, {userId}, {
+            withCredentials: true
+        })
+        .then(() => {
+            toast.success("User status set to active successfully !!")
+            setMakingUserActiveLoading(false);
+            allUsersProfile();
+        })
+        .catch((err) => {
+            console.log("Something went wrong while changing the status of the user : ", err)
+            toast.error(err.response.data.message)
+            setMakingUserActiveLoading(false);
+        })
+    }
+
+    const makeUserStatusInactive = (userId) => {
+        if (!inactiveUntil) {
+            alert("Please select a date and time");
+            return;
+        }
+
+        setMakingUserInactiveLoading(true);
+
+        axios.post(`${authUrl}/admin/statusInactive`, {
+            userId: selectedUserId,
+            inactiveUntil: new Date(inactiveUntil).toISOString()
+        }, {
+            withCredentials: true
+        })
+        .then(() => {
+            toast.success("User status set to inactive successfully !!")
+            setMakingUserInactiveLoading(false);
+            setShowInactiveModal(false);
+            allUsersProfile();
+        })
+        .catch((err) => {
+            console.log("Something went wrong while changing the status of the user : ", err)
+            toast.error(err.response.data.message)
+            setMakingUserInactiveLoading(false);
+        })
+    }
+
+    const handleInactiveButtonOnClick = (userId) => {
+        setSelectedUserId(userId);
+        setInactiveUntil(""); 
+        setShowInactiveModal(true);
+    }
+
     useEffect(() => {
         allUsersProfile();
     }, [])
@@ -193,7 +255,13 @@ export default function AllUsers() {
                             <tbody>
                                 {allUsers.map((user) => (
                                     <tr key={user.id}>
-                                        <td className="p-2">{user.username}</td>
+                                        <td className="p-2">{user.username} 
+                                            {user.status === "inactive" && 
+                                                <span className="bg-gray-400 m-2 p-2">
+                                                    inactive
+                                                </span> 
+                                            }
+                                        </td>
 
                                         {(currentUser.id === user.id)
 
@@ -308,6 +376,58 @@ export default function AllUsers() {
                                                 </button>
                                             </td>
                                             }
+
+                                            {user.status === "inactive"
+                                            ? <td>
+                                                <button 
+                                                className="cursor-pointer mt-2 rounded bg-green-500 p-2 disabled:bg-green-400 disabled:cursor-not-allowed" 
+                                                onClick={() => makeUserStatusActive(user.id)}
+                                                disabled={makingUserActiveLoading}
+                                                >
+                                                    active
+                                                </button>
+                                            </td>
+                                            : <td>
+                                                <button 
+                                                className="cursor-pointer mt-2 rounded bg-red-500 p-2 disabled:bg-red-400 disabled:cursor-not-allowed" 
+                                                onClick={() => handleInactiveButtonOnClick(user.id)}
+                                                disabled={makingUserInactiveLoading}
+                                                >
+                                                    inactive
+                                                </button>
+                                            </td>
+                                            }
+
+                                            {showInactiveModal && (
+                                                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+                                                <div className="bg-white p-6 rounded shadow-lg">
+                                                    <h2 className="mb-4 text-lg font-semibold">Set inactive until</h2>
+
+                                                    <input
+                                                    type="datetime-local"
+                                                    value={inactiveUntil}
+                                                    onChange={(e) => setInactiveUntil(e.target.value)}
+                                                    className="border p-2 rounded w-full"
+                                                    />
+
+                                                    <div className="mt-4 flex justify-end space-x-2">
+                                                    <button
+                                                        className="px-4 py-2 bg-gray-300 rounded"
+                                                        onClick={() => setShowInactiveModal(false)}
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                    <button
+                                                        className="px-4 py-2 bg-red-500 text-white rounded"
+                                                        onClick={makeUserStatusInactive}
+                                                        disabled={makingUserInactiveLoading}
+                                                    >
+                                                        {makingUserInactiveLoading ? "Saving..." : "Save"}
+                                                    </button>
+                                                    </div>
+                                                </div>
+                                                </div>
+                                            )}
 
                                         </div>
                                         }
